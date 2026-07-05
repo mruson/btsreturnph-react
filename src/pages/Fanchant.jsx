@@ -272,7 +272,7 @@ export default function Fanchant() {
       <CityPageHero
         code="Concert Initiative · ARIRANG Setlist"
         titleLines={['Fanchant', 'Guide']}
-        subtitle="Learn every fanchant before the show. Pick a song, hit play — the lyrics follow along."
+        subtitle="Let's make PH Stadium a big karaoke session with BTS. Pick a song, hit play — the lyrics and fanchants will follow along."
       />
 
       <section className="py-12 sm:py-16">

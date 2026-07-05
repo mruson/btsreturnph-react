@@ -52,16 +52,54 @@ To use real images:
 1. Drop image files into `public/` (e.g. `public/logo.png`).
 2. Replace an `<ImagePlaceholder ... />` with a normal `<img src="/logo.png" alt="..." />`.
 
-## Deploying
+## Deploying (Netlify)
 
-The build output (`/dist`) is a static site. Any of these work with zero config:
+The site is hosted on **Netlify**, connected to this GitHub repo. Build settings live in
+[`netlify.toml`](netlify.toml) (`npm run build` → `dist`), and `public/_redirects` handles
+client-side routing. To point **btsreturnph.com** here, add it as a custom domain in Netlify
+and update the domain's DNS once you're happy with the site.
 
-- **Netlify / Vercel** — connect the repo; build command `npm run build`, publish dir `dist`.
-  The included `public/_redirects` handles client-side routing on Netlify.
-- **GitHub Pages** — serve `/dist` (add a `vite.config.js` `base` if not at the domain root).
+### Branch workflow (to save build credits)
 
-To point your existing domain (btsreturnph.com) here, update its DNS/nameservers to the
-new host once deployed.
+Netlify only builds the **`main`** branch. In the Netlify UI, under
+**Build & deploy → Branches and deploy contexts**, we set:
+
+- **Production branch:** `main`
+- **Branch deploys:** `None` (only `main` builds)
+- **Deploy Previews:** `None`
+
+So **only a push/merge to `main` triggers a build.** Do day-to-day work on **`staging`**:
+
+```bash
+# on the staging branch — pushing here does NOT build (free)
+git add -A && git commit -m "…"
+git push
+
+# ship to production (uses one build credit)
+git checkout main && git merge staging && git push
+git checkout staging      # back to working branch
+```
+
+### Previewing staging changes (free)
+
+Staging has no Netlify URL, so preview it one of these ways — neither costs build credits:
+
+```bash
+npm run dev        # live, hot-reloading → http://localhost:5173
+npm run preview    # production build, exactly as it'll deploy
+```
+
+Need a **shareable** hosted link? Build locally and upload with the Netlify CLI — pre-built
+uploads don't consume build minutes (the build ran on your machine):
+
+```bash
+npm i -g netlify-cli && netlify login   # first time only
+npm run build
+netlify deploy --dir=dist               # → a draft preview URL (free)
+netlify deploy --dir=dist --prod        # publish to production (free — local build)
+```
+
+> Tip: add `[skip ci]` to a commit message to skip the build even on `main`.
 
 ## Notes
 

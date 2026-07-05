@@ -9,6 +9,22 @@ export const site = {
     'This is where passion meets purpose — built by ARMYs, for ARMYs. A collective effort by PH ARMYs, with no single organizer or central team.',
 }
 
+// --- Live content from Google Sheets (no rebuild needed) -------------------
+// Paste your Google Sheet ID between the /d/ and /edit in its URL:
+//   https://docs.google.com/spreadsheets/d/THIS_PART/edit
+// Share the sheet as "Anyone with the link — Viewer".
+// Each tab = one list; the header row names the fields.
+export const sheets = {
+  id: '18cGrJpXmUbb_NYj2cHa9y1pPRKVk193sVarcUOurN4M',
+  tabs: {
+    updates: 'Posts', // columns: date | title | blurb | image (public image URL) | link (post URL)
+    fund: 'Fund', // columns: label | raised | goal  (totals are summed automatically)
+    products: 'BANGTANdahan', // columns: name | price | category | tag | image
+    sponsors: 'Sponsors', // columns: name | handle | logo | link
+    votings: 'Votings', // columns: status (ongoing/upcoming) | award | nominee | start | app
+  },
+}
+
 // --- Navigation (drives the navbar) ---------------------------------------
 export const nav = [
   { label: 'About', to: '/about' },
@@ -18,7 +34,6 @@ export const nav = [
       { label: 'Projects', to: '/projects' },
       { label: 'Streaming', to: '/streaming' },
       { label: 'Donations', to: '/donations' },
-      { label: 'Donors', to: '/donors' },
       { label: 'Voting', to: '/voting' },
     ],
   },
@@ -29,9 +44,10 @@ export const nav = [
       { label: 'Communities', to: '/communities' },
       { label: 'Fanchant Guide', to: '/fanchant' },
       { label: 'BANGTANdahan', to: '/bangtandahan' },
+      { label: 'Sponsors', to: '/sponsors' },
     ],
   },
-  { label: 'Shop', to: '/shop' },
+  { label: 'Shop', to: '/bangtandahan' },
 ]
 
 // --- Social links ----------------------------------------------------------
@@ -40,7 +56,7 @@ export const socials = [
   { label: 'TikTok', href: 'https://www.tiktok.com/@btsreturnph' },
   { label: 'Instagram', href: 'https://www.instagram.com/btsreturnph' },
   { label: 'Facebook', href: 'https://www.facebook.com/btsreturnph' },
-  { label: 'X', href: 'https://x.com/btsreturnph' },
+  { label: 'X', href: 'https://x.com/btsisbackinph' },
 ]
 
 // --- The four RE: sub-projects --------------------------------------------
@@ -78,15 +94,15 @@ export const subProjects = [
 
 // --- Donation channels -----------------------------------------------------
 export const donationChannels = [
-  { method: 'G-Cash', detail: '0909 737 3306', name: 'Andrea Batiduan' },
-  { method: 'Maya', detail: '0909 737 3306', name: 'Andrea Batiduan' },
-  { method: 'PayPal', detail: 'btsphborahae@gmail.com', name: '' },
+  { method: 'G-Cash', detail: '0909 737 3306', name: 'Andrea Batiduan', qr: '/home/comeback/donations/gcash.jpeg' },
+  { method: 'Maya', detail: '0909 737 3306', name: 'Andrea Batiduan', qr: '/home/comeback/donations/maya.jpeg' },
+  { method: 'PayPal', detail: 'btsphborahae@gmail.com', name: '', qr: '/home/comeback/donations/paypal.jpeg' },
 ]
 
 // Replace these with the real portal / tracker links.
 export const donationLinks = {
-  donateNow: '#',
-  tracker: '#',
+  donateNow: 'https://docs.google.com/forms/d/e/1FAIpQLSfkGssLrUQiBMlXhBP-uJBYQOhAipSM36RzuwUSrksGfUGQSA/viewform',
+  tracker: 'https://docs.google.com/spreadsheets/d/11T_v5KUWJpnUT6Nrrid0y8AORQzGd8LRK4ZoH1or2ME/edit?gid=0#gid=0',
 }
 
 // --- Voting platforms ------------------------------------------------------
