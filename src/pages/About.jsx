@@ -126,7 +126,7 @@ export default function About() {
               that keep the whole initiative running smoothly.
             </p>
             <img
-              src="/about/core.png"
+              src="/about/core.webp"
               alt="BTS RE:TURN PH core team org chart"
               className="mx-auto mt-8 w-full max-w-4xl rounded-2xl"
             />
@@ -142,7 +142,7 @@ export default function About() {
               initiative&rsquo;s plans and calls to action so every fan can join in.
             </p>
             <img
-              src="/about/social-media.png"
+              src="/about/social-media.webp"
               alt="BTS RE:TURN PH social media partners"
               className="mx-auto mt-8 w-full max-w-4xl rounded-2xl"
             />

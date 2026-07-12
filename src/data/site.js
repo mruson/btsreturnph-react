@@ -22,6 +22,7 @@ export const sheets = {
     products: 'BANGTANdahan', // columns: name | price | category | tag | image
     sponsors: 'Sponsors', // columns: name | handle | logo | link
     votings: 'Votings', // columns: status (ongoing/upcoming) | award | nominee | start | app
+    events: 'Events', // columns: date | title | desc | link (sign-up form URL)
   },
 }
 

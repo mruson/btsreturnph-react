@@ -18,13 +18,13 @@ const updates = [
 
 // Fan projects for BTS in Manila.
 const projects = [
-  { name: 'Lamp Post Banners', target: '20 – 60 posts', img: '/concert/lamp-post-banner.png' },
-  { name: 'Aerial Banners', target: '2 – 5 flyovers', img: '/concert/aerial-banner.png' },
-  { name: 'Surprise Fan Projects (Team Loob)', target: '10,000 – 50,000', img: '/concert/hand-banners.png' },
-  { name: 'Bus Wraps', target: '2 – 8 buses', img: '/concert/bus-wrap.png' },
-  { name: 'Concert Kits', target: '10,000 – 50,000', img: '/concert/concert-kit.png' },
-  { name: 'Lighting Events', target: 'Manila → Nationwide', img: '/concert/lighting-events.png' },
-  { name: 'Airport Welcome Project', target: '3 – 10 screens', img: '/concert/airport-welcome.png' },
+  { name: 'Lamp Post Banners', target: '20 – 60 posts', img: '/concert/lamp-post-banner.webp' },
+  { name: 'Aerial Banners', target: '2 – 5 flyovers', img: '/concert/aerial-banner.webp' },
+  { name: 'Surprise Fan Projects (Team Loob)', target: '10,000 – 50,000', img: '/concert/hand-banners.webp' },
+  { name: 'Bus Wraps', target: '2 – 8 buses', img: '/concert/bus-wrap.webp' },
+  { name: 'Concert Kits', target: '10,000 – 50,000', img: '/concert/concert-kit.webp' },
+  { name: 'Lighting Events', target: 'Manila → Nationwide', img: '/concert/lighting-events.webp' },
+  { name: 'Airport Welcome Project', target: '3 – 10 screens', img: '/concert/airport-welcome.webp' },
 ]
 
 // Fundraising snapshot.
