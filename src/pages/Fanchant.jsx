@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CityPageHero } from '../components/UI'
-import { setlist } from '../data/setlist'
+import { setlist, coreSetlist } from '../data/setlist'
 
 // --- YouTube IFrame API loader (once per page) -----------------------------
 let ytApiPromise
@@ -92,6 +92,30 @@ const fmt = (s) => {
   return `${m}:${sec}`
 }
 
+// Split a lyric line into plain / sing-along / custom-chant / struck segments.
+//   [[ ]] → sing-along words, rendered blue    e.g. 'No, [[not today]]'
+//   {{ }} → custom ARMY chant, rendered purple e.g. 'Mian… {{(ani)}}'
+//   ~~ ~~ → lyric the chant REPLACES, struck through and muted
+//           e.g. 'You know how I ~~do do do~~ [[(BTS! BTS! BTS!)]]'
+// The line still reads as a full-size lyric. Crowd-only shouts (not sung by the
+// members) are flagged with `chantOnly` on the line itself, which de-emphasizes
+// them and adds a "Chant" badge.
+const KINDS = ['chant', 'custom', 'struck']
+function parseLine(text) {
+  const segments = []
+  const re = /\[\[(.+?)\]\]|\{\{(.+?)\}\}|~~(.+?)~~/g
+  let last = 0
+  let m
+  while ((m = re.exec(text))) {
+    if (m.index > last) segments.push({ text: text.slice(last, m.index), kind: 'plain' })
+    const hit = KINDS.findIndex((_, k) => m[k + 1] !== undefined)
+    segments.push({ text: m[hit + 1], kind: KINDS[hit] })
+    last = m.index + m[0].length
+  }
+  if (last < text.length) segments.push({ text: text.slice(last), kind: 'plain' })
+  return segments
+}
+
 // --- Synced lyrics (guide mode) --------------------------------------------
 function SyncedLyrics({ song, currentTime, onSeek }) {
   const listRef = useRef(null)
@@ -124,22 +148,60 @@ function SyncedLyrics({ song, currentTime, onSeek }) {
     >
       {song.lyrics.map((line, i) => {
         const active = i === activeIndex
+        const segments = parseLine(line.text)
+        const chantOnly = !!line.chantOnly
         return (
           <button
             key={i}
             type="button"
             ref={(el) => (lineRefs.current[i] = el)}
             onClick={() => onSeek(line.t)}
-            className={`block w-full scroll-mt-24 rounded-lg px-3 py-2 text-left transition ${
-              active ? 'bg-city-yellow/40' : 'hover:bg-city-ink/5'
-            }`}
+            className={`block w-full scroll-mt-24 rounded-lg px-3 text-left transition ${
+              chantOnly ? 'py-1' : 'py-2'
+            } ${active ? 'bg-city-yellow/40' : 'hover:bg-city-ink/5'}`}
           >
-            <span
-              className={`font-manila text-lg uppercase leading-snug sm:text-xl ${
-                active ? 'text-city-crimson' : 'text-city-ink'
-              }`}
-            >
-              {line.text}
+            <span className="flex items-start justify-between gap-2">
+              <span
+                className={
+                  chantOnly
+                    ? 'font-manila-body text-sm font-bold uppercase tracking-wide sm:text-base'
+                    : 'font-manila text-lg uppercase leading-snug sm:text-xl'
+                }
+              >
+                {segments.map((seg, si) => {
+                  if (seg.kind === 'chant')
+                    return (
+                      <span
+                        key={si}
+                        className={`font-bold ${chantOnly ? 'text-purple' : 'text-city-sky'}`}
+                      >
+                        {seg.text}
+                      </span>
+                    )
+                  if (seg.kind === 'custom')
+                    return (
+                      <span key={si} className="font-bold text-purple">
+                        {seg.text}
+                      </span>
+                    )
+                  if (seg.kind === 'struck')
+                    return (
+                      <span key={si} className="text-city-ink/35 line-through">
+                        {seg.text}
+                      </span>
+                    )
+                  return (
+                    <span key={si} className={active ? 'text-city-crimson' : 'text-city-ink'}>
+                      {seg.text}
+                    </span>
+                  )
+                })}
+              </span>
+              {chantOnly && (
+                <span className="mt-1 shrink-0 rounded-full bg-purple/15 px-2 py-0.5 font-manila-body text-[10px] font-bold uppercase tracking-widest text-purple">
+                  Chant
+                </span>
+              )}
             </span>
             {line.chant && (
               <span className="mt-0.5 block font-manila-body text-sm font-bold uppercase tracking-wide text-city-sky">
@@ -257,8 +319,11 @@ function TimestampTool({ song, getTime }) {
   )
 }
 
+// Song shown first when the page loads.
+const DEFAULT_SONG_INDEX = Math.max(0, setlist.findIndex((s) => s.id === 'hooligan'))
+
 export default function Fanchant() {
-  const [songIndex, setSongIndex] = useState(0)
+  const [songIndex, setSongIndex] = useState(DEFAULT_SONG_INDEX)
   const [mode, setMode] = useState('guide') // 'guide' | 'timestamp'
   const [params] = useSearchParams()
   // Hidden authoring tool — only for admins via ?edit=1, never shown to visitors.
@@ -266,6 +331,29 @@ export default function Fanchant() {
   const activeMode = editMode ? mode : 'guide'
   const song = setlist[songIndex]
   const { hostRef, ready, currentTime, seekTo, getTime } = useYouTube(song.youtubeId)
+
+  const playerRef = useRef(null)
+  const selectSong = (i) => {
+    setSongIndex(i)
+    // Wait for the new song to render, then scroll the player into view.
+    requestAnimationFrame(() =>
+      playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    )
+  }
+
+  // Ready songs in Core Setlist (concert) order, for prev/next navigation.
+  const readyOrder = useMemo(
+    () =>
+      coreSetlist
+        .flatMap((g) => g.songs)
+        .map((s) => (s.id ? setlist.findIndex((x) => x.id === s.id) : -1))
+        .filter((idx) => idx !== -1)
+        .map((idx) => ({ index: idx, title: setlist[idx].title })),
+    [],
+  )
+  const pos = readyOrder.findIndex((o) => o.index === songIndex)
+  const prevSong = pos > 0 ? readyOrder[pos - 1] : null
+  const nextSong = pos >= 0 && pos < readyOrder.length - 1 ? readyOrder[pos + 1] : null
 
   return (
     <div className="bg-city-cream font-manila-body text-city-ink">
@@ -277,28 +365,81 @@ export default function Fanchant() {
 
       <section className="py-12 sm:py-16">
         <div className="container-page">
-          {/* Setlist selector */}
-          <div className="mb-8 flex flex-wrap gap-2">
-            {setlist.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setSongIndex(i)}
-                className={`rounded-full px-4 py-2 font-manila-body text-sm font-bold uppercase tracking-wide transition ${
-                  i === songIndex
-                    ? 'bg-city-crimson text-white'
-                    : 'border-2 border-city-ink/15 text-city-ink hover:border-city-crimson/40'
-                }`}
-              >
-                {s.title}
-                {s.note && (
-                  <span className="ml-2 font-normal normal-case text-current/60">· {s.note}</span>
-                )}
-              </button>
-            ))}
+          {/* Core setlist — full running order, grouped by act */}
+          <div className="mb-10 rounded-2xl border-2 border-city-ink/10 bg-white p-5 sm:p-6">
+            <div className="mb-4 flex items-baseline justify-between gap-3">
+              <h2 className="font-manila text-2xl uppercase leading-none sm:text-3xl">
+                ARIRANG TOUR Setlist
+              </h2>
+              <span className="font-manila-body text-xs font-bold uppercase tracking-wide text-city-ink/50">
+                Tap a ready song to open its guide
+              </span>
+            </div>
+
+            <div className="space-y-6">
+              {coreSetlist.map((group) => (
+                <div key={group.act}>
+                  <h3 className="mb-2 font-manila-body text-sm font-bold uppercase tracking-widest text-city-crimson">
+                    {group.act}
+                  </h3>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {group.songs.map((s) => {
+                      const readyIndex = s.id
+                        ? setlist.findIndex((x) => x.id === s.id)
+                        : -1
+                      const ready = readyIndex !== -1
+                      const active = ready && readyIndex === songIndex
+                      return (
+                        <button
+                          key={s.n}
+                          type="button"
+                          disabled={!ready}
+                          onClick={() => ready && selectSong(readyIndex)}
+                          className={`flex items-center gap-3 rounded-xl px-3 py-2 text-left font-manila-body transition ${
+                            active
+                              ? 'bg-city-crimson text-white'
+                              : ready
+                                ? 'border-2 border-city-ink/15 text-city-ink hover:border-city-crimson/40'
+                                : 'cursor-not-allowed border-2 border-dashed border-city-ink/10 text-city-ink/40'
+                          }`}
+                        >
+                          <span
+                            className={`w-6 shrink-0 text-sm font-bold ${
+                              active ? 'text-white/70' : 'text-city-ink/40'
+                            }`}
+                          >
+                            {s.n}
+                          </span>
+                          {s.surprise ? (
+                            <span className="flex-1">
+                              <span
+                                className={`city-banner text-xs sm:text-sm ${
+                                  s.n % 2 ? 'rotate-2' : '-rotate-2'
+                                }`}
+                              >
+                                ???
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="flex-1 text-sm font-bold uppercase tracking-wide leading-tight">
+                              {s.title}
+                            </span>
+                          )}
+                          {!ready && !s.surprise && (
+                            <span className="shrink-0 rounded-full bg-city-ink/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-city-ink/50">
+                              Soon
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div ref={playerRef} className="grid scroll-mt-24 gap-8 lg:grid-cols-2">
             {/* Video + mode toggle */}
             <div className="lg:sticky lg:top-24 lg:self-start">
               <div className="aspect-video w-full overflow-hidden rounded-2xl border-2 border-city-ink/10 bg-black">
@@ -334,9 +475,25 @@ export default function Fanchant() {
 
             {/* Lyrics / tool */}
             <div>
-              <h2 className="mb-4 font-manila text-2xl uppercase leading-none sm:text-3xl">
+              <h2 className="font-manila text-2xl uppercase leading-none sm:text-3xl">
                 {song.title}
               </h2>
+              {song.note && (
+                <p className="mt-1.5 font-manila-body text-sm font-semibold text-city-crimson">
+                  {song.note}
+                </p>
+              )}
+              {/* Colour legend */}
+              <div className="mb-4 mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <span className="inline-flex items-center gap-2 font-manila-body text-sm font-bold uppercase tracking-wide text-city-sky">
+                  <span className="h-3 w-3 rounded-full bg-city-sky" />
+                  Blue: Sing-along
+                </span>
+                <span className="inline-flex items-center gap-2 font-manila-body text-sm font-bold uppercase tracking-wide text-purple">
+                  <span className="h-3 w-3 rounded-full bg-purple" />
+                  Purple: Chant
+                </span>
+              </div>
               {activeMode === 'guide' ? (
                 <SyncedLyrics song={song} currentTime={currentTime} onSeek={seekTo} />
               ) : (
@@ -344,6 +501,44 @@ export default function Fanchant() {
               )}
             </div>
           </div>
+
+          {/* Prev / Next song — spans video + lyrics */}
+          {activeMode === 'guide' && (
+            <div className="mt-8 flex items-start justify-between gap-4">
+              {prevSong ? (
+                <button
+                  type="button"
+                  onClick={() => selectSong(prevSong.index)}
+                  className="group flex flex-col items-start text-left"
+                >
+                  <span className="font-manila-body text-[10px] font-bold uppercase tracking-widest text-city-ink/50">
+                    ← Previous
+                  </span>
+                  <span className="font-manila text-lg uppercase leading-none transition group-hover:text-city-crimson">
+                    {prevSong.title}
+                  </span>
+                </button>
+              ) : (
+                <span />
+              )}
+              {nextSong ? (
+                <button
+                  type="button"
+                  onClick={() => selectSong(nextSong.index)}
+                  className="group flex flex-col items-end text-right"
+                >
+                  <span className="font-manila-body text-[10px] font-bold uppercase tracking-widest text-city-ink/50">
+                    Next →
+                  </span>
+                  <span className="font-manila text-lg uppercase leading-none transition group-hover:text-city-crimson">
+                    {nextSong.title}
+                  </span>
+                </button>
+              ) : (
+                <span />
+              )}
+            </div>
+          )}
         </div>
       </section>
     </div>

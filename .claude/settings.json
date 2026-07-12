@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npx vite *)",
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/micdrop.py)",
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/micdrop2.py)",
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/dynamite.py)",
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/butter.py)",
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/swim.py)",
+      "Bash(awk 'NR>1 && $1<prev {print \"OUT OF ORDER: \" $1 \" after \" prev; bad=1} {prev=$1} END {if\\(!bad\\) print \"OK - strictly increasing \\(\" NR \" lines\\)\"}')",
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/fakelove.py)"
     ]
   }
 }

@@ -47,7 +47,6 @@ export const nav = [
       { label: 'Sponsors', to: '/sponsors' },
     ],
   },
-  { label: 'Shop', to: '/bangtandahan' },
 ]
 
 // --- Social links ----------------------------------------------------------
@@ -125,7 +124,7 @@ export const votingPlatforms = [
 export const concertProjects = [
   { name: 'Freebie Bag', target: '10,000 – 50,000' },
   { name: 'Bus Wrap', target: '2 – 8' },
-  { name: 'Hand Banners (Team Loob)', target: '10,000 – 50,000' },
+  { name: 'Surprise Fan Projects (Team Loob)', target: '10,000 – 50,000' },
   { name: 'Lamp Post Banners', target: '20 – 60' },
   { name: 'Lighting Events', target: 'Manila → Nationwide' },
 ]

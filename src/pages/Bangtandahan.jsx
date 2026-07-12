@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CityPageHero, CityImagePlaceholder } from '../components/UI'
 import { useSheet, driveImage, num } from '../lib/sheet'
 import { sheets } from '../data/site'
@@ -61,11 +61,131 @@ const awning = {
 const biliForm =
   'https://docs.google.com/forms/d/e/1FAIpQLScgH64_aiQvRzJH9dEsaaxr-ug4YDFNe-lDq62LwUj0W9ZzPw/viewform'
 
+// Full-screen image viewer with zoom + pan. Click a product photo to open it.
+function ImageLightbox({ src, alt, onClose }) {
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const drag = useState(() => ({ active: false, startX: 0, startY: 0, baseX: 0, baseY: 0 }))[0]
+
+  const clampZoom = (z) => Math.min(5, Math.max(1, z))
+
+  // Reset pan whenever we return to fit.
+  const setZoomSafe = (next) => {
+    const z = clampZoom(next)
+    setZoom(z)
+    if (z === 1) setPan({ x: 0, y: 0 })
+  }
+
+  // Close on Escape; lock body scroll while open.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === '+' || e.key === '=') setZoomSafe(zoom + 0.5)
+      if (e.key === '-') setZoomSafe(zoom - 0.5)
+    }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [zoom, onClose])
+
+  const onWheel = (e) => {
+    e.preventDefault()
+    setZoomSafe(zoom + (e.deltaY < 0 ? 0.3 : -0.3))
+  }
+
+  const onPointerDown = (e) => {
+    if (zoom <= 1) return
+    drag.active = true
+    drag.startX = e.clientX
+    drag.startY = e.clientY
+    drag.baseX = pan.x
+    drag.baseY = pan.y
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+  }
+  const onPointerMove = (e) => {
+    if (!drag.active) return
+    setPan({ x: drag.baseX + (e.clientX - drag.startX), y: drag.baseY + (e.clientY - drag.startY) })
+  }
+  const onPointerUp = () => {
+    drag.active = false
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-city-ink/90 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+    >
+      {/* Controls */}
+      <div
+        className="absolute right-4 top-4 z-10 flex items-center gap-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => setZoomSafe(zoom - 0.5)}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 font-manila text-2xl text-city-ink shadow transition hover:bg-white"
+          aria-label="Zoom out"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          onClick={() => setZoomSafe(zoom + 0.5)}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 font-manila text-2xl text-city-ink shadow transition hover:bg-white"
+          aria-label="Zoom in"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 font-manila text-xl text-city-ink shadow transition hover:bg-white"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+      </div>
+
+      <img
+        src={src}
+        alt={alt}
+        onClick={(e) => e.stopPropagation()}
+        onDoubleClick={() => setZoomSafe(zoom > 1 ? 1 : 2)}
+        onWheel={onWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        draggable={false}
+        className="max-h-[85vh] max-w-[90vw] select-none rounded-lg object-contain shadow-2xl"
+        style={{
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          cursor: zoom > 1 ? (drag.active ? 'grabbing' : 'grab') : 'zoom-in',
+          transition: drag.active ? 'none' : 'transform 0.15s ease-out',
+          touchAction: 'none',
+        }}
+      />
+
+      <p className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 font-manila-body text-xs text-white/70">
+        Scroll or use +/− to zoom · double-click to toggle · drag to pan
+      </p>
+    </div>
+  )
+}
+
 export default function Bangtandahan() {
   // Live products from the Google Sheet, falling back to `products`.
   const items = useSheet(sheets.id, sheets.tabs.products, products)
   const [sort, setSort] = useState('new')
   const sorted = useMemo(() => sortProducts(items, sort), [items, sort])
+  const [lightbox, setLightbox] = useState(null) // { src, alt } of the open image
 
   return (
     <div className="bg-city-cream font-manila-body text-city-ink">
@@ -89,8 +209,8 @@ export default function Bangtandahan() {
               Bili na sa BANGTANdahan!
             </h2>
             <p className="mt-4 text-lg text-city-ink/70">
-              A virtual sari-sari store run by PH ARMYs. Grab your paninda tingi-tingi —
-              100% of proceeds go to the fan projects for the concert.
+Our virtual ARMY sari-sari store — from shoe laces to concert bags, all in one place!
+            Every purchase funds the fan projects for BTS in the City: Manila to Bulacan.
             </p>
             <a href={biliForm} target="_blank" rel="noreferrer" className="city-btn-primary mt-6">
               Bili na! →
@@ -126,11 +246,18 @@ export default function Bangtandahan() {
               >
                 <div className="relative">
                   {p.image ? (
-                    <img
-                      src={driveImage(p.image)}
-                      alt={p.name}
-                      className="aspect-square w-full border-b-2 border-city-ink/10 object-cover"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setLightbox({ src: driveImage(p.image), alt: p.name })}
+                      className="block w-full cursor-zoom-in"
+                      aria-label={`Zoom in on ${p.name}`}
+                    >
+                      <img
+                        src={driveImage(p.image)}
+                        alt={p.name}
+                        className="aspect-square w-full border-b-2 border-city-ink/10 object-cover"
+                      />
+                    </button>
                   ) : (
                     <CityImagePlaceholder
                       label="Product photo"
@@ -164,6 +291,10 @@ export default function Bangtandahan() {
 
       {/* Striped awning divider */}
       <div className="h-6" style={awning} aria-hidden />
+
+      {lightbox && (
+        <ImageLightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />
+      )}
     </div>
   )
 }

@@ -20,7 +20,7 @@ const updates = [
 const projects = [
   { name: 'Lamp Post Banners', target: '20 – 60 posts', img: '/concert/lamp-post-banner.png' },
   { name: 'Aerial Banners', target: '2 – 5 flyovers', img: '/concert/aerial-banner.png' },
-  { name: 'Hand Banners (Team Loob)', target: '10,000 – 50,000', img: '/concert/hand-banners.png' },
+  { name: 'Surprise Fan Projects (Team Loob)', target: '10,000 – 50,000', img: '/concert/hand-banners.png' },
   { name: 'Bus Wraps', target: '2 – 8 buses', img: '/concert/bus-wrap.png' },
   { name: 'Concert Kits', target: '10,000 – 50,000', img: '/concert/concert-kit.png' },
   { name: 'Lighting Events', target: 'Manila → Nationwide', img: '/concert/lighting-events.png' },
