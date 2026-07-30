@@ -72,6 +72,61 @@ result before committing.
 > script uses [`sharp`](https://sharp.pixelplumbing.com/) (a dev dependency); tweak `MAX_WIDTH`,
 > `QUALITY`, or `SIZE_THRESHOLD` at the top of the file if you need different trade-offs.
 
+### Then right-size them to how they're actually displayed
+
+```bash
+npm run images
+```
+
+`optimize-images.mjs` above caps images at 1920px wide — still far bigger than anything on this
+site renders. A 1500×1500 app icon shown in a 200px box makes a phone on mobile data download
+~7× the pixels it can use. `npm run images` resizes each file to **2× its widest CSS box** (crisp
+on retina, nothing wasted) and re-encodes it, keeping the same format so no `src` paths change.
+
+The target widths live in a `TARGETS` table at the top of
+[`scripts/resize-images.mjs`](scripts/resize-images.mjs), one entry per folder — **if you change a
+layout, update the matching entry.** Re-running is safe: anything already at or under its target
+is skipped, and originals stay in git history.
+
+> The first pass cut `public/` from **4.48 MB to 1.14 MB (−75%)**, which took the `/voting` page
+> from ~1.3 MB to ~284 KB.
+
+### Regenerating the share cards and app icon
+
+```bash
+npm run og
+```
+
+Rebuilds `public/og/*.jpg` (the [social share cards](#social-share-cards-seo)) and
+`public/apple-touch-icon.png` from `public/logo.png`. Only needed if the logo, the palette, or
+the card copy changes — the output is committed.
+
+## Social share cards (SEO)
+
+Every page has its own title, description, and share image. Edit the copy in
+**[`src/data/seo.js`](src/data/seo.js)** — one entry per route, and nothing else needs touching.
+
+Why it's built the way it is: this is a single-page app, so every URL serves the same
+`index.html` and React fills in the page in the browser. **Facebook, X, Threads, and Viber don't
+run JavaScript** when they unfurl a link — they read the raw HTML and stop. So `npm run build`
+also runs [`scripts/prerender-seo.mjs`](scripts/prerender-seo.mjs), which writes a real HTML file
+per route (plus `sitemap.xml`, `robots.txt`, and a `_redirects` that pins each route to its own
+file). React updates the same tags at runtime for browser tabs and bookmarks.
+
+> **`npm run preview` won't show this working** — Vite's SPA fallback shadows the per-route files.
+> To check a card before shipping, deploy to a named alias so the URLs self-reference:
+>
+> ```bash
+> CONTEXT=deploy-preview \
+> DEPLOY_PRIME_URL=https://seo-test--celadon-pavlova-537268.netlify.app \
+> npm run build
+> netlify deploy --dir=dist --alias=seo-test
+> ```
+>
+> Then paste that URL into the [Sharing Debugger](https://developers.facebook.com/tools/debug/).
+> **Run a plain `npm run build` before deploying to production afterwards**, or you'll ship
+> canonical URLs pointing at the preview.
+
 ## Deploying (Netlify)
 
 The site is hosted on **Netlify**, connected to this GitHub repo. Build settings live in

@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Section } from '../components/UI'
+import { Section, Skeleton, LoadError } from '../components/UI'
 import { useSheet } from '../lib/sheet'
 import { sheets } from '../data/site'
 
@@ -93,7 +93,7 @@ const planAreas = [
 
 export default function Home() {
   // Live events from the "Events" sheet — empty until rows are added.
-  const events = useSheet(sheets.id, sheets.tabs.events, [])
+  const { rows: events, loading, error, reload } = useSheet(sheets.id, sheets.tabs.events, [])
 
   return (
     <>
@@ -122,9 +122,15 @@ export default function Home() {
               </Link>
             </div>
           </div>
+          {/* The homepage's largest element — load it eagerly and at high
+              priority so it isn't queued behind the fonts and JS bundle. */}
           <img
             src="/home/bts-photo.webp"
             alt="BTS"
+            width="1120"
+            height="1680"
+            fetchPriority="high"
+            decoding="async"
             className="w-full rounded-2xl object-cover shadow-sm"
           />
         </div>
@@ -173,6 +179,10 @@ export default function Home() {
               <img
                 src={p.img}
                 alt={p.title}
+                width="560"
+                height="700"
+                loading="lazy"
+                decoding="async"
                 className="mb-4 aspect-[4/5] w-full rounded-2xl object-cover"
               />
               <h3 className="text-xl font-extrabold text-ink">{p.title}</h3>
@@ -190,7 +200,19 @@ export default function Home() {
             Upcoming initiatives and events — tap Sign Up to join.
           </p>
         </div>
-        <EventsCarousel items={events} />
+        {/* Without the loading branch this section flashed "No upcoming events"
+            on every first paint, before the sheet had a chance to answer. */}
+        {loading && !events.length ? (
+          <div className="flex gap-5 overflow-hidden pb-4">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-56 w-[85%] shrink-0 sm:w-[340px]" />
+            ))}
+          </div>
+        ) : error && !events.length ? (
+          <LoadError onRetry={reload} />
+        ) : (
+          <EventsCarousel items={events} />
+        )}
       </Section>
     </>
   )

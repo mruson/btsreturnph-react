@@ -1,5 +1,67 @@
 // Small reusable building blocks shared across pages.
 
+// --- Google Sheet loading / error states -----------------------------------
+
+// One grey placeholder block. `city` switches to the tint that reads on the
+// Manila pages' cream background.
+export function Skeleton({ className = '', city = false }) {
+  return <div className={`skeleton ${city ? 'skeleton-city' : ''} ${className}`} aria-hidden />
+}
+
+// Wraps a section that's driven by a sheet. Shows `skeleton` while loading, a
+// retry prompt if the fetch failed and we have nothing to show, otherwise the
+// real children.
+//
+// `hasContent` matters: some tabs have a seeded fallback list, so a failed
+// fetch still leaves something worth rendering — in that case we stay quiet
+// rather than putting an error box above perfectly good content.
+export function SheetSection({ loading, error, reload, hasContent, skeleton, children, city = false }) {
+  if (loading && !hasContent) return skeleton
+  if (error && !hasContent) return <LoadError onRetry={reload} city={city} />
+  return children
+}
+
+// Shown when a sheet can't be reached and there's no fallback content. Says
+// what happened without blaming the visitor, and offers a way out.
+export function LoadError({ onRetry, city = false }) {
+  return (
+    <div
+      role="status"
+      className={`rounded-2xl border-2 border-dashed px-6 py-10 text-center ${
+        city ? 'border-city-crimson/30 bg-white/50' : 'border-purple/25 bg-purple/[0.03]'
+      }`}
+    >
+      <p className={`font-semibold ${city ? 'text-city-ink' : 'text-ink'}`}>
+        We couldn&rsquo;t load this right now.
+      </p>
+      <p className={`mt-1 text-sm ${city ? 'text-city-ink/70' : 'text-ink/60'}`}>
+        Check your connection and try again.
+      </p>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className={`mt-5 ${city ? 'city-btn-outline' : 'btn-ghost'}`}
+        >
+          Try again
+        </button>
+      )}
+    </div>
+  )
+}
+
+// Shown while a code-split page chunk downloads (see App.jsx / routes.jsx).
+// The spinner is delayed ~250ms by CSS, so quick navigations — the common case
+// once a chunk is cached — show nothing at all rather than a jarring flash.
+export function RouteFallback() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center" role="status">
+      <span className="route-spinner" />
+      <span className="sr-only">Loading page…</span>
+    </div>
+  )
+}
+
 export function Section({ children, className = '', muted = false }) {
   return (
     <section className={`${muted ? 'bg-purple/[0.03]' : ''} py-16 sm:py-20`}>

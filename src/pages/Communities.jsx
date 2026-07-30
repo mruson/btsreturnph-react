@@ -26,7 +26,15 @@ export default function Communities() {
                 key={c.name}
                 className="flex flex-col items-center rounded-2xl border-2 border-city-ink/10 bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:border-city-crimson/40 hover:shadow-md"
               >
-                <img src={c.img} alt={c.name} className="mb-4 w-24 max-w-full" />
+                <img
+                  src={c.img}
+                  alt={c.name}
+                  width="192"
+                  height="192"
+                  loading="lazy"
+                  decoding="async"
+                  className="mb-4 w-24 max-w-full"
+                />
                 <h3 className="font-manila text-base uppercase leading-tight">{c.name}</h3>
                 <a
                   href={c.href}

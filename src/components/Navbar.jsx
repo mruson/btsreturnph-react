@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { nav, site } from '../data/site'
+import { prefetchProps, prefetchRoute } from '../lib/prefetch'
 
 function Dropdown({ item }) {
   const [open, setOpen] = useState(false)
   return (
     <div
       className="relative"
-      onMouseEnter={() => setOpen(true)}
+      // Opening the menu is a strong signal one of these is next — warm them all.
+      onMouseEnter={() => {
+        setOpen(true)
+        item.children.forEach((c) => prefetchRoute(c.to))
+      }}
       onMouseLeave={() => setOpen(false)}
     >
       <button
@@ -26,6 +31,7 @@ function Dropdown({ item }) {
             <NavLink
               key={c.to}
               to={c.to}
+              {...prefetchProps(c.to)}
               className={({ isActive }) =>
                 `block rounded-lg px-3 py-2 text-sm ${
                   isActive ? 'bg-purple/10 text-purple' : 'text-ink/80 hover:bg-purple/5'
@@ -49,7 +55,15 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/90 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5" onClick={closeMobile}>
-          <img src="/logo.png" alt="BTS RE:TURN PH logo" className="h-11 w-auto" />
+          {/* In the first viewport on every page — never lazy-load it. */}
+          <img
+            src="/logo.png"
+            alt="BTS RE:TURN PH logo"
+            width="768"
+            height="768"
+            fetchPriority="high"
+            className="h-11 w-auto"
+          />
           <span className="leading-tight">
             <span className="block font-display text-lg font-extrabold tracking-tight">
               {site.name}
@@ -69,6 +83,7 @@ export default function Navbar() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                {...prefetchProps(item.to)}
                 className={({ isActive }) =>
                   `px-3 py-2 text-sm font-medium ${
                     isActive ? 'text-purple' : 'text-ink/80 hover:text-purple'
@@ -79,9 +94,6 @@ export default function Navbar() {
               </NavLink>
             ),
           )}
-          <Link to="/donations" className="btn-primary ml-2">
-            Get Involved
-          </Link>
         </nav>
 
         {/* Mobile toggle */}
@@ -114,6 +126,7 @@ export default function Navbar() {
                     <NavLink
                       key={c.to}
                       to={c.to}
+                      {...prefetchProps(c.to)}
                       onClick={closeMobile}
                       className="block rounded-lg px-4 py-2 text-sm text-ink/80 hover:bg-purple/5"
                     >
@@ -125,6 +138,7 @@ export default function Navbar() {
                 <NavLink
                   key={item.to}
                   to={item.to}
+                  {...prefetchProps(item.to)}
                   onClick={closeMobile}
                   className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/80 hover:bg-purple/5"
                 >
@@ -132,9 +146,6 @@ export default function Navbar() {
                 </NavLink>
               ),
             )}
-            <Link to="/donations" onClick={closeMobile} className="btn-primary mt-2 w-full">
-              Get Involved
-            </Link>
           </div>
         </div>
       )}

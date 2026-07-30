@@ -33,7 +33,13 @@ export default function Projects() {
         <div className="container-page py-14 sm:py-20">
           <div className="mx-auto flex max-w-3xl flex-col items-center rounded-3xl bg-white p-8 text-center shadow-sm sm:p-12">
             <div className="flex items-center gap-4">
-              <img src="/about/relive.png" alt="BTS RE:LIVE PH" className="h-16 w-16 object-contain" />
+              <img
+                src="/about/relive.png"
+                alt="BTS RE:LIVE PH"
+                width="440"
+                height="440"
+                className="h-16 w-16 object-contain"
+              />
               <span className="font-display text-5xl font-extrabold text-purple sm:text-6xl">
                 RE:LIVE
               </span>
@@ -77,11 +83,19 @@ export default function Projects() {
             <img
               src="/home/comeback/projects/armysanta1.avif"
               alt="ArmySanta holiday donation drive"
+              width="596"
+              height="748"
+              loading="lazy"
+              decoding="async"
               className="w-full rounded-2xl shadow-sm"
             />
             <img
               src="/home/comeback/projects/armysanta2.avif"
               alt="ArmySanta sponsorship tiers"
+              width="596"
+              height="748"
+              loading="lazy"
+              decoding="async"
               className="w-full rounded-2xl shadow-sm"
             />
           </div>
@@ -114,7 +128,15 @@ export default function Projects() {
       <div className="bg-purple/10">
         <div className="container-page py-16 sm:py-20">
           <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center">
-            <img src="/about/replay.png" alt="BTS RE:PLAY PH" className="w-40 shrink-0" />
+            <img
+              src="/about/replay.png"
+              alt="BTS RE:PLAY PH"
+              width="440"
+              height="440"
+              loading="lazy"
+              decoding="async"
+              className="w-40 shrink-0"
+            />
             <div>
               <h2 className="text-4xl font-extrabold sm:text-5xl">BTS RE:PLAY HUB</h2>
               <p className="mt-6 text-lg text-ink/80">

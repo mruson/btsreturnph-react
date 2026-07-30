@@ -23,7 +23,9 @@ function loadYouTubeAPI() {
 }
 
 // --- Hook: create one player, poll its time, swap videos -------------------
-function useYouTube(videoId) {
+// `start` / `end` (seconds, optional) clip playback to one section of the video —
+// used for songs where only part of the performance matters.
+function useYouTube(videoId, start, end) {
   const hostRef = useRef(null)
   const playerRef = useRef(null)
   const [ready, setReady] = useState(false)
@@ -37,7 +39,13 @@ function useYouTube(videoId) {
         width: '100%',
         height: '100%',
         videoId,
-        playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
+        playerVars: {
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          ...(start != null && { start }),
+          ...(end != null && { end }),
+        },
         events: { onReady: () => !cancelled && setReady(true) },
       })
     })
@@ -52,10 +60,14 @@ function useYouTube(videoId) {
 
   useEffect(() => {
     if (ready && playerRef.current?.cueVideoById) {
-      playerRef.current.cueVideoById(videoId)
-      setCurrentTime(0)
+      playerRef.current.cueVideoById({
+        videoId,
+        ...(start != null && { startSeconds: start }),
+        ...(end != null && { endSeconds: end }),
+      })
+      setCurrentTime(start ?? 0)
     }
-  }, [videoId, ready])
+  }, [videoId, start, end, ready])
 
   useEffect(() => {
     if (!ready) return
@@ -97,13 +109,14 @@ const fmt = (s) => {
 //   {{ }} → custom ARMY chant, rendered purple e.g. 'Mian… {{(ani)}}'
 //   ~~ ~~ → lyric the chant REPLACES, struck through and muted
 //           e.g. 'You know how I ~~do do do~~ [[(BTS! BTS! BTS!)]]'
+//   << >> → FAN PROJECT moment, rendered orange
 // The line still reads as a full-size lyric. Crowd-only shouts (not sung by the
 // members) are flagged with `chantOnly` on the line itself, which de-emphasizes
 // them and adds a "Chant" badge.
-const KINDS = ['chant', 'custom', 'struck']
+const KINDS = ['chant', 'custom', 'struck', 'project']
 function parseLine(text) {
   const segments = []
-  const re = /\[\[(.+?)\]\]|\{\{(.+?)\}\}|~~(.+?)~~/g
+  const re = /\[\[(.+?)\]\]|\{\{(.+?)\}\}|~~(.+?)~~|<<(.+?)>>/g
   let last = 0
   let m
   while ((m = re.exec(text))) {
@@ -147,6 +160,16 @@ function SyncedLyrics({ song, currentTime, onSeek }) {
       className="relative max-h-[65vh] overflow-y-auto rounded-2xl border-2 border-city-ink/10 bg-white p-5 sm:p-6"
     >
       {song.lyrics.map((line, i) => {
+        // Section-transition note — not a lyric; shown centered + muted.
+        if (line.divider)
+          return (
+            <p
+              key={i}
+              className="px-3 py-4 text-center font-manila-body text-xs font-bold uppercase tracking-widest text-city-ink/40"
+            >
+              {line.text}
+            </p>
+          )
         const active = i === activeIndex
         const segments = parseLine(line.text)
         const chantOnly = !!line.chantOnly
@@ -187,6 +210,14 @@ function SyncedLyrics({ song, currentTime, onSeek }) {
                   if (seg.kind === 'struck')
                     return (
                       <span key={si} className="text-city-ink/35 line-through">
+                        {seg.text}
+                      </span>
+                    )
+                  if (seg.kind === 'project')
+                    // TEMP: fan-project (<< >>) shown purple for now; orange is
+                    // disabled. Restore by swapping text-purple → text-city-orange.
+                    return (
+                      <span key={si} className="font-bold text-purple">
                         {seg.text}
                       </span>
                     )
@@ -323,14 +354,22 @@ function TimestampTool({ song, getTime }) {
 const DEFAULT_SONG_INDEX = Math.max(0, setlist.findIndex((s) => s.id === 'hooligan'))
 
 export default function Fanchant() {
-  const [songIndex, setSongIndex] = useState(DEFAULT_SONG_INDEX)
-  const [mode, setMode] = useState('guide') // 'guide' | 'timestamp'
   const [params] = useSearchParams()
+  // ?song=<setlist id> opens straight to that song (used by the Fan Projects page).
+  const [songIndex, setSongIndex] = useState(() => {
+    const requested = setlist.findIndex((s) => s.id === params.get('song'))
+    return requested === -1 ? DEFAULT_SONG_INDEX : requested
+  })
+  const [mode, setMode] = useState('guide') // 'guide' | 'timestamp'
   // Hidden authoring tool — only for admins via ?edit=1, never shown to visitors.
   const editMode = params.get('edit') === '1'
   const activeMode = editMode ? mode : 'guide'
   const song = setlist[songIndex]
-  const { hostRef, ready, currentTime, seekTo, getTime } = useYouTube(song.youtubeId)
+  const { hostRef, ready, currentTime, seekTo, getTime } = useYouTube(
+    song.youtubeId,
+    song.start,
+    song.end,
+  )
 
   const playerRef = useRef(null)
   const selectSong = (i) => {
@@ -351,6 +390,9 @@ export default function Fanchant() {
         .map((idx) => ({ index: idx, title: setlist[idx].title })),
     [],
   )
+  // Only show the orange legend entry on songs that actually have a fan project.
+  // eslint-disable-next-line no-unused-vars -- kept for restoring the disabled fan-project feature
+  const hasProject = song.lyrics.some((l) => l.text.includes('<<'))
   const pos = readyOrder.findIndex((o) => o.index === songIndex)
   const prevSong = pos > 0 ? readyOrder[pos - 1] : null
   const nextSong = pos >= 0 && pos < readyOrder.length - 1 ? readyOrder[pos + 1] : null
@@ -371,9 +413,6 @@ export default function Fanchant() {
               <h2 className="font-manila text-2xl uppercase leading-none sm:text-3xl">
                 ARIRANG TOUR Setlist
               </h2>
-              <span className="font-manila-body text-xs font-bold uppercase tracking-wide text-city-ink/50">
-                Tap a ready song to open its guide
-              </span>
             </div>
 
             <div className="space-y-6">
@@ -391,7 +430,7 @@ export default function Fanchant() {
                       const active = ready && readyIndex === songIndex
                       return (
                         <button
-                          key={s.n}
+                          key={s.id ?? s.title}
                           type="button"
                           disabled={!ready}
                           onClick={() => ready && selectSong(readyIndex)}
@@ -404,11 +443,11 @@ export default function Fanchant() {
                           }`}
                         >
                           <span
-                            className={`w-6 shrink-0 text-sm font-bold ${
-                              active ? 'text-white/70' : 'text-city-ink/40'
-                            }`}
+                            className={`shrink-0 whitespace-nowrap text-sm font-bold ${
+                              s.label ? 'uppercase tracking-wide' : 'w-6'
+                            } ${active ? 'text-white/70' : 'text-city-ink/40'}`}
                           >
-                            {s.n}
+                            {s.label ?? s.n}
                           </span>
                           {s.surprise ? (
                             <span className="flex-1">
@@ -423,6 +462,11 @@ export default function Fanchant() {
                           ) : (
                             <span className="flex-1 text-sm font-bold uppercase tracking-wide leading-tight">
                               {s.title}
+                            </span>
+                          )}
+                          {s.fanProject && (
+                            <span className="shrink-0 rounded-full bg-city-orange/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-city-orange">
+                              Fan Project
                             </span>
                           )}
                           {!ready && !s.surprise && (
@@ -493,6 +537,13 @@ export default function Fanchant() {
                   <span className="h-3 w-3 rounded-full bg-purple" />
                   Purple: Chant
                 </span>
+                {/* TEMPORARILY DISABLED: orange fan-project legend.
+                {hasProject && (
+                  <span className="inline-flex items-center gap-2 font-manila-body text-sm font-bold uppercase tracking-wide text-city-orange">
+                    <span className="h-3 w-3 rounded-full bg-city-orange" />
+                    Orange: Fan Project
+                  </span>
+                )} */}
               </div>
               {activeMode === 'guide' ? (
                 <SyncedLyrics song={song} currentTime={currentTime} onSeek={seekTo} />

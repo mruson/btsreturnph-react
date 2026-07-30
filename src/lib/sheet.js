@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 // Coerce a sheet cell (e.g. "₱62,000" or "62000") into a plain number.
 export function num(value) {
@@ -55,26 +55,100 @@ export async function fetchSheet(sheetId, sheetName) {
     .filter((obj) => Object.values(obj).some((v) => v !== '' && v != null))
 }
 
-// React hook: returns `fallback` immediately, then swaps in live sheet data
-// once it loads. Silently keeps the fallback if the sheet isn't set up or the
-// fetch fails, so the page always renders.
+// --- Cache -----------------------------------------------------------------
+// Without this, every visit to a page refetches its tab from Google — including
+// when you navigate away and back. Rows are shared per tab across components,
+// so the two useSheet calls on /about hit the network once each, not twice.
+const cache = new Map() // key -> { rows, at }
+const inflight = new Map() // key -> Promise, so parallel mounts share one request
+
+const CACHE_MS = 5 * 60 * 1000 // re-fetch at most once every 5 minutes
+
+const keyFor = (sheetId, sheetName) => `${sheetId}::${sheetName}`
+
+// Drop everything cached — used by the retry button, which should always go to
+// the network rather than replay a failure.
+export function clearSheetCache() {
+  cache.clear()
+  inflight.clear()
+}
+
+// React hook for one sheet tab.
+//
+//   const { rows, loading, error, reload } = useSheet(id, 'Sponsors', [])
+//
+// `rows` is `fallback` until real data arrives, so a page always renders. Use
+// `loading` to show a skeleton instead of an empty section, and `error` to tell
+// people the data didn't load rather than silently showing nothing.
 export function useSheet(sheetId, sheetName, fallback = []) {
-  const [rows, setRows] = useState(fallback)
+  const key = keyFor(sheetId, sheetName)
+
+  // Seed from cache when we already have this tab — navigating back to a page
+  // then shows its data immediately, with no skeleton flash.
+  const [state, setState] = useState(() => {
+    const hit = cache.get(key)
+    return hit
+      ? { rows: hit.rows, loading: false, error: null }
+      : { rows: fallback, loading: Boolean(sheetId), error: null }
+  })
+
+  // Bumped by reload() to re-run the effect.
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if (!sheetId) return
+    if (!sheetId) {
+      setState((s) => ({ ...s, loading: false }))
+      return
+    }
+
+    const hit = cache.get(key)
+    if (hit && Date.now() - hit.at < CACHE_MS) {
+      setState({ rows: hit.rows, loading: false, error: null })
+      return
+    }
+
     let alive = true
-    fetchSheet(sheetId, sheetName)
-      .then((data) => {
-        if (alive && data.length) setRows(data)
+    setState((s) => ({ ...s, loading: true, error: null }))
+
+    let request = inflight.get(key)
+    if (!request) {
+      request = fetchSheet(sheetId, sheetName)
+      inflight.set(key, request)
+      // Clear the slot however it settles, so a failure isn't cached forever.
+      request.finally(() => {
+        if (inflight.get(key) === request) inflight.delete(key)
       })
-      .catch(() => {
-        /* keep fallback on any error */
-      })
+    }
+
+    request.then(
+      (data) => {
+        // An empty result usually means the tab is missing or misnamed rather
+        // than genuinely empty, so keep the fallback — matching the original
+        // behaviour, which pages like /about rely on for their seeded lists.
+        if (data.length) cache.set(key, { rows: data, at: Date.now() })
+        if (!alive) return
+        setState((s) => ({
+          rows: data.length ? data : s.rows,
+          loading: false,
+          error: null,
+        }))
+      },
+      (err) => {
+        if (!alive) return
+        setState((s) => ({ rows: s.rows, loading: false, error: err }))
+      },
+    )
+
     return () => {
       alive = false
     }
-  }, [sheetId, sheetName])
+  }, [sheetId, sheetName, key, attempt])
 
-  return rows
+  const reload = useCallback(() => {
+    cache.delete(key)
+    inflight.delete(key)
+    setAttempt((n) => n + 1)
+  }, [key])
+
+  return { rows: state.rows, loading: state.loading, error: state.error, reload }
 }

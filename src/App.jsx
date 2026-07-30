@@ -1,38 +1,29 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Suspense } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
-import Home from './pages/Home'
-import About from './pages/About'
-import Projects from './pages/Projects'
-import Streaming from './pages/Streaming'
-import Donations from './pages/Donations'
-import Voting from './pages/Voting'
-import Concert from './pages/Concert'
-import Communities from './pages/Communities'
-import Bangtandahan from './pages/Bangtandahan'
-import Fanchant from './pages/Fanchant'
-import Sponsors from './pages/Sponsors'
-import Shop from './pages/Shop'
+import ErrorBoundary from './components/ErrorBoundary'
+import { RouteFallback } from './components/UI'
+import { routes } from './routes'
 import NotFound from './pages/NotFound'
 
 export default function App() {
+  // Passing the path as resetKey clears a crashed page once you navigate away.
+  const { pathname } = useLocation()
+
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/streaming" element={<Streaming />} />
-        <Route path="/donations" element={<Donations />} />
-        <Route path="/donors" element={<Navigate to="/donations" replace />} />
-        <Route path="/voting" element={<Voting />} />
-        <Route path="/concert" element={<Concert />} />
-        <Route path="/communities" element={<Communities />} />
-        <Route path="/bangtandahan" element={<Bangtandahan />} />
-        <Route path="/fanchant" element={<Fanchant />} />
-        <Route path="/sponsors" element={<Sponsors />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <ErrorBoundary resetKey={pathname}>
+        {/* Pages are code-split (see routes.jsx); this shows while a chunk loads. */}
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            {routes.map(({ path, Component }) => (
+              <Route key={path} path={path} element={<Component />} />
+            ))}
+            <Route path="/donors" element={<Navigate to="/donations" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </Layout>
   )
 }

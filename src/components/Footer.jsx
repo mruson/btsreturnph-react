@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { nav, socials, site } from '../data/site'
+import { prefetchProps } from '../lib/prefetch'
 
 // Flatten nav (including dropdown children) into a single link list.
 const allLinks = nav.flatMap((item) =>
@@ -32,7 +33,15 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt={site.name} className="h-11 w-auto" />
+              <img
+                src="/logo.png"
+                alt={site.name}
+                width="768"
+                height="768"
+                loading="lazy"
+                decoding="async"
+                className="h-11 w-auto"
+              />
               <span className="font-display text-lg font-extrabold text-white">
                 {site.name}
               </span>
@@ -47,7 +56,7 @@ export default function Footer() {
             <ul className="grid grid-cols-2 gap-2 text-sm">
               {allLinks.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="hover:text-white">
+                  <Link to={l.to} {...prefetchProps(l.to)} className="hover:text-white">
                     {l.label}
                   </Link>
                 </li>

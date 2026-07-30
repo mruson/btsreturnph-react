@@ -29,7 +29,13 @@ export default function Donations() {
         <div className="container-page py-16 text-center sm:py-20">
           <div className="mx-auto flex max-w-3xl flex-col items-center">
             <div className="flex items-center gap-4">
-              <img src="/about/rebuild.png" alt="BTS RE:BUILD PH" className="h-16 w-16 object-contain" />
+              <img
+                src="/about/rebuild.png"
+                alt="BTS RE:BUILD PH"
+                width="440"
+                height="440"
+                className="h-16 w-16 object-contain"
+              />
               <span className="font-display text-5xl font-extrabold sm:text-6xl">RE:BUILD</span>
             </div>
             <p className="mt-4 text-xl font-semibold text-white/90">
@@ -67,6 +73,10 @@ export default function Donations() {
                 <img
                   src={c.qr}
                   alt={`${c.method} QR code`}
+                  width="326"
+                  height="326"
+                  loading="lazy"
+                  decoding="async"
                   className="aspect-square w-full max-w-[200px] rounded-xl bg-white object-contain p-2 shadow-sm"
                 />
                 <p className="mt-3 text-lg font-bold text-ink">{c.method}</p>

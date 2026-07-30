@@ -93,7 +93,13 @@ export default function Streaming() {
       <div className="bg-hero-gradient text-white">
         <div className="container-page py-14 text-center sm:py-20">
           <div className="mx-auto flex max-w-3xl flex-col items-center">
-            <img src="/about/replay.png" alt="BTS RE:PLAY PH" className="h-20 w-20 object-contain" />
+            <img
+              src="/about/replay.png"
+              alt="BTS RE:PLAY PH"
+              width="440"
+              height="440"
+              className="h-20 w-20 object-contain"
+            />
             <h1 className="mt-4 font-display text-5xl font-extrabold sm:text-6xl">RE:PLAY</h1>
             <p className="mt-4 text-xl font-semibold text-white/90">
               The core of BTS is their music.

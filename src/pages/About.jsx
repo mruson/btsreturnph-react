@@ -1,4 +1,8 @@
 import { PageHero, Section } from '../components/UI'
+import { CoreTeamChart, MediaPartners } from '../components/OrgChart'
+import { useSheet } from '../lib/sheet'
+import { sheets } from '../data/site'
+import { teamFallback, mediaPartnersFallback } from '../data/team'
 
 // The four sub-projects, shown with their badge logos under "About the title".
 const subLogos = [
@@ -9,6 +13,15 @@ const subLogos = [
 ]
 
 export default function About() {
+  // Both render fine while loading: the team list has a seeded fallback, and
+  // MediaPartners renders nothing at all until it has rows.
+  const { rows: team } = useSheet(sheets.id, sheets.tabs.team, teamFallback)
+  const { rows: partners } = useSheet(
+    sheets.id,
+    sheets.tabs.mediaPartners,
+    mediaPartnersFallback,
+  )
+
   return (
     <>
       <PageHero
@@ -63,6 +76,10 @@ export default function About() {
           <img
             src="/logo.png"
             alt="BTS RE:TURN PH logo"
+            width="768"
+            height="768"
+            loading="lazy"
+            decoding="async"
             className="mx-auto w-full max-w-sm"
           />
           <div>
@@ -95,7 +112,15 @@ export default function About() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {subLogos.map((s) => (
             <div key={s.code} className="rounded-2xl border border-black/5 bg-white p-6 text-center shadow-sm">
-              <img src={s.img} alt={`BTS ${s.code} PH`} className="mx-auto aspect-square w-full max-w-[220px] object-contain" />
+              <img
+                src={s.img}
+                alt={`BTS ${s.code} PH`}
+                width="440"
+                height="440"
+                loading="lazy"
+                decoding="async"
+                className="mx-auto aspect-square w-full max-w-[220px] object-contain"
+              />
               <p className="mt-2 font-display text-lg font-extrabold text-ink">{s.label}</p>
             </div>
           ))}
@@ -125,11 +150,7 @@ export default function About() {
               It&rsquo;s organized into five departments, each owning a specific set of tasks
               that keep the whole initiative running smoothly.
             </p>
-            <img
-              src="/about/core.webp"
-              alt="BTS RE:TURN PH core team org chart"
-              className="mx-auto mt-8 w-full max-w-4xl rounded-2xl"
-            />
+            <CoreTeamChart rows={team} />
           </div>
 
           {/* Social Media Partners */}
@@ -141,11 +162,7 @@ export default function About() {
               Our social media partners help us reach more ARMYs nationwide — amplifying the
               initiative&rsquo;s plans and calls to action so every fan can join in.
             </p>
-            <img
-              src="/about/social-media.webp"
-              alt="BTS RE:TURN PH social media partners"
-              className="mx-auto mt-8 w-full max-w-4xl rounded-2xl"
-            />
+            <MediaPartners rows={partners} />
           </div>
         </div>
       </Section>

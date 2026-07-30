@@ -20,9 +20,11 @@ export const sheets = {
     updates: 'Posts', // columns: date | title | blurb | image (public image URL) | link (post URL)
     fund: 'Fund', // columns: label | raised | goal  (totals are summed automatically)
     products: 'BANGTANdahan', // columns: name | price | category | tag | image
-    sponsors: 'Sponsors', // columns: name | handle | logo | link
+    sponsors: 'Sponsors', // Brand Partners page. columns: name | tier (PLATINUM/GOLD/SILVER/BRONZE/IN-KIND) | logo | link (social media URL)
     votings: 'Votings', // columns: status (ongoing/upcoming) | award | nominee | start | app
     events: 'Events', // columns: date | title | desc | link (sign-up form URL)
+    team: 'Team', // columns: dept | fanbase | logo | link | active — see data/team.js
+    mediaPartners: 'media_partners', // columns: partner | logo | link | active
   },
 }
 
@@ -44,8 +46,10 @@ export const nav = [
       { label: 'BTS in Manila', to: '/concert' },
       { label: 'Communities', to: '/communities' },
       { label: 'Fanchant Guide', to: '/fanchant' },
+      // Fan Projects (Team Loob) is intentionally not in the nav — it's reached
+      // from the BTS in Manila page. The /fan-projects route still works.
       { label: 'BANGTANdahan', to: '/bangtandahan' },
-      { label: 'Sponsors', to: '/sponsors' },
+      { label: 'Brand Partners', to: '/partners' },
     ],
   },
 ]

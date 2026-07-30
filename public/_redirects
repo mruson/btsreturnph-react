@@ -1,1 +1,11 @@
+# SPA fallback: any URL that isn't a real file loads the app.
+#
+# NOTE: `npm run build` overwrites dist/_redirects with a generated version that
+# lists each prerendered route ahead of this rule (scripts/prerender-seo.mjs).
+# This file is the dev/no-prerender fallback — keep the catch-all here.
+#
+# Renamed routes (mirrored from `legacyRoutes` in the script) must stay above
+# the catch-all, which would otherwise swallow them.
+/sponsors    /partners     301
+
 /*    /index.html   200

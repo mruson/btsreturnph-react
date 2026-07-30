@@ -9,7 +9,42 @@
       "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/butter.py)",
       "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/swim.py)",
       "Bash(awk 'NR>1 && $1<prev {print \"OUT OF ORDER: \" $1 \" after \" prev; bad=1} {prev=$1} END {if\\(!bad\\) print \"OK - strictly increasing \\(\" NR \" lines\\)\"}')",
-      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/fakelove.py)"
+      "Bash(python3 /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/d2f0e139-a3ec-429f-994c-2faab882999e/scratchpad/fakelove.py)",
+      "Bash(awk '{if\\($1<66||$1>122\\) print \"OUT OF RANGE: \" $1; if\\(NR>1 && $1<prev\\) print \"OUT OF ORDER: \" $1} {prev=$1} END {print \"checked \" NR \" lines\"}')",
+      "Bash(node scripts/optimize-images.mjs)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s \"https://docs.google.com/spreadsheets/d/18cGrJpXmUbb_NYj2cHa9y1pPRKVk193sVarcUOurN4M/gviz/tq?tqx=out:json&headers=1&sheet=Fund\")",
+      "Bash(python3 -)",
+      "Bash(awk 'NR>1 && $1<prev {print \"OUT: \"$1\" after \"prev; b=1} {prev=$1} END{if\\(!b\\)print \"OK \\(\"NR\" lines\\)\"}')",
+      "Bash(python3 -c ' *)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+      "Bash(fc-list)",
+      "Bash(grep -vE \"^\\\\S+-\\\\s*$\")",
+      "Bash(sed -n '/container-page py-16 text-center/,/^.*<\\\\/div>/p' src/pages/Donations.jsx | head -20; echo \"=== VOTING ===\"; grep -B3 -A10 \"RE:CLAIM\" src/pages/Voting.jsx | head -25)",
+      "Bash(node scripts/make-og-images.mjs)",
+      "Bash(curl -sv http://localhost:4188/)",
+      "Bash(kill 57317 57294)",
+      "Bash(curl -s \"http://localhost:4300/src/lib/seo.js\")",
+      "Bash(curl -s \"http://localhost:4300/src/components/Layout.jsx\")",
+      "Bash(pkill -f \"vite preview\")",
+      "Bash(pkill -f \"port 4300\")",
+      "Bash(pkill -f \"http.server 4200\")",
+      "Bash(netlify status *)",
+      "Bash(npx playwright *)",
+      "Bash(curl -s -o /dev/null -w \"server: %{http_code}\\\\n\" http://localhost:4230/shop)",
+      "Bash(lsof -nP -iTCP:4230 -sTCP:LISTEN)",
+      "Bash(pkill -f netlify-like.mjs)",
+      "Bash(pkill -f \"http.server 42\")",
+      "Bash(curl -s -o /dev/null -w \"server 4270: %{http_code}\\\\n\" http://localhost:4270/)",
+      "Bash(curl -s -o /dev/null -w \"proxy 4290 alive: %{http_code}\\\\n\" http://127.0.0.1:4290/)",
+      "Bash(git mv *)",
+      "Bash(grep -o '<script>.\\\\{0,200\\\\}' /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/8e8a448d-b08c-4ee9-b0d2-2da059ad9c24/scratchpad/dist-slow/index.html)",
+      "WebSearch"
+    ],
+    "additionalDirectories": [
+      "/Users/majchaty/Desktop/btsreturnph-react/src/pages"
     ]
   }
 }

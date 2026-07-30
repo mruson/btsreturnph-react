@@ -19,6 +19,17 @@
 // words with ~~ ~~ — they render muted + struck through. Example:
 //   text: 'You know how I ~~do do do~~ [[(BTS! BTS! BTS!)]]'
 //
+// FAN PROJECTS: the part of a song where an ARMY fan project happens. Wrap in
+// << >> — renders orange, and adds an "Orange: Fan Project" legend entry to
+// that song only. Example:
+//   text: '<<lift your banners here>>'
+//
+// CLIP A SECTION: add `start` / `end` (SECONDS) to a song to play only part of
+// the video — e.g. `start: 66, end: 109` plays 1:06 → 1:49 and stops.
+//
+// SECTION NOTE: `{ divider: true, text: '…' }` shows a centered, muted note in
+// the lyric list (not a lyric — never highlights, not clickable, needs no `t`).
+//
 // CROWD-ONLY SHOUTS: lines the members DON'T sing (member roll-calls, "BTS!
 // BTS! BTS!"). Add `chantOnly: true` — renders small + de-emphasized with a
 // "Chant" badge, so it doesn't compete with the lyrics you actually sing.
@@ -1144,7 +1155,7 @@ export const setlist = [
       { t: 68, text: "You'll never love me like the way you did before", chant: '' },
       { t: 77, text: 'But would you open up if I knocked on your door', chant: '' },
 
-      { t: 87, text: '~~Knock knock~~ [[B! T! S!]]', chant: '' },
+      { t: 87, text: '~~Knock knock~~ {{B! T! S!}}', chant: '' },
       { t: 88, text: "Knockin' on your door", chant: '' },
       { t: 91, text: 'My blood on the floor', chant: '' },
       { t: 93, text: "Just checkin' on your door", chant: '' },
@@ -1297,6 +1308,679 @@ export const setlist = [
       { t: 230, text: 'Irwojiji anhneun kkumsogeseo piul su eopsneun kkocheul kiwosseo', chant: '' },
     ],
   },
+  {
+    id: 'body-to-body',
+    title: 'Body to Body',
+    note: '',
+    youtubeId: 'RBaSiVjtKR4',
+    lyrics: [
+      { t: 10, text: '[[Kim Namjoon! Kim Seokjin! Min Yoongi! Jeong Hoseok! Park Jimin! Kim Taehyung! Jeon Jung kook! BTS!]]', chant: '', chantOnly: true },
+
+      { t: 18, text: 'I need the whole stadium to jump', chant: '' },
+      { t: 20, text: 'Put your phone down, let’s get all the fun', chant: '' },
+      { t: 22, text: 'I got my eyes on the row in the front', chant: '' },
+      { t: 24, text: 'The vibe is high, if we bein’ blunt', chant: '' },
+      { t: 26, text: 'The vibe is high, let the building {{(Hey!)}}', chant: '' },
+
+      { t: 29, text: '[[B-T-uh]], from everywhere to Korea', chant: '' },
+      { t: 32, text: 'Chong kal kibodeu da jom chiwo', chant: '' },
+      { t: 34, text: 'Insaengeun jjalba jeungoneun biwo', chant: '' },
+      { t: 36, text: 'It’s big in real life', chant: '' },
+      { t: 38, text: 'Mwol chemyeon ttajyeo naeryeonwa, ya inma', chant: '' },
+      { t: 41, text: '[[Hop in]]', chant: '' },
+      { t: 42, text: 'Jom deo gakkai wa [[skin to skin]]', chant: '' },
+
+      { t: 44, text: 'I need some body to body', chant: '' },
+      { t: 48, text: 'All of your body beside me', chant: '' },
+      { t: 51, text: 'Jeogi jeo dare dake sone son', chant: '' },
+      { t: 54, text: 'neowa na we on and on', chant: '' },
+      { t: 56, text: 'Sunrise, but we don’t go home', chant: '' },
+
+      { t: 58.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 62.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 66.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 70.5, text: 'Somebody like you', chant: '' },
+
+      { t: 72.5, text: 'Somebody like', chant: '' },
+      { t: 74.5, text: 'Errbody like you', chant: '' },
+
+      { t: 80.5, text: 'It’s so tight', chant: '' },
+      { t: 82, text: '[[I mean]], neowaui sai', chant: '' },
+      { t: 84, text: '[[I mean]], urimanui geu style', chant: '' },
+      { t: 86, text: '[[I mean]], we livin’ the life', chant: '' },
+      { t: 88, text: 'Du nuneul gamji aneul i bam, uh', chant: '' },
+      { t: 90, text: 'Sotguchineun gyeoreui maeum, mm', chant: '' },
+      { t: 92, text: 'Be about it, be about it, be about it', chant: '' },
+      { t: 94, text: 'You could see about it', chant: '' },
+      { t: 95, text: 'Or you read about it', chant: '' },
+
+      { t: 96.7, text: 'I need some body to body', chant: '' },
+      { t: 100.5, text: 'All of your body beside me', chant: '' },
+      { t: 103, text: 'Jeogi jeo dare dake [[sone son]]', chant: '' },
+      { t: 106, text: 'neowa na we [[on and on]]', chant: '' },
+      { t: 108, text: 'Sunrise, but we don’t go home', chant: '' },
+
+      { t: 110.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 114.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 118.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 122.5, text: 'Somebody like you', chant: '' },
+      { t: 124.5, text: 'Somebody like', chant: '' },
+      { t: 126.5, text: 'Errbody like you', chant: '' },
+
+      { t: 130.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 134.5, text: 'Somebody like you {{(Somebody like you)}}', chant: '' },
+      { t: 138.5, text: 'Somebody like you', chant: '' },
+      { t: 140.5, text: 'Somebody like', chant: '' },
+      { t: 142.5, text: 'Errbody like you', chant: '' },
+
+      { t: 144, text: '<<A-ri-rang, a-ri-rang, a-ra-ri-yo>>', chant: '' },
+      { t: 152, text: '<<A-ri-rang go-gae-ro neo-meo-ganda>>', chant: '' },
+      { t: 160, text: '<<Na-reul beo-ri-go ga-si-neun ni-meun>>', chant: '' },
+      { t: 168, text: '<<Sim-ni-do mot-ga-seo bal-byeong-nanda>>', chant: '' },
+
+      { t: 176, text: 'I need the whole stadium to jump {{(BTS!)}}', chant: '' },
+      { t: 180, text: 'Put your phone down, let’s get all the fun {{(BTS!)}}', chant: '' },
+      { t: 184, text: 'You at the side, at the back, at the front', chant: '' },
+    ],
+  },
+  {
+    id: 'aliens',
+    title: 'Aliens',
+    note: '',
+    youtubeId: 'EC9_h_elSAY',
+    lyrics: [
+      { t: 3.5, text: 'This gon’ be the jam of the year', chant: '' },
+      { t: 6, text: 'Jiruhago ttabunhae modeun ge (modeun ge)', chant: '' },
+      { t: 8.7, text: 'Siganeun cham ppalla [[tick-tock]] stadiumeuro [[jipap]]', chant: '' },
+      { t: 11.2, text: 'Dodaeche mwol deo gominhae? (gominhae)', chant: '' },
+
+      { t: 13.5, text: 'Taesaengbuteo dareun [[seven aliens]]', chant: '' },
+      { t: 16, text: 'Uril bureowohane jeo civilians', chant: '' },
+      { t: 18.5, text: 'Guji seolmyeonghagi ip apa, stadiumeuro [[jipap]]', chant: '' },
+      { t: 21, text: 'Dodaeche mwol deo gominhae? (gominhae)', chant: '' },
+
+      { t: 23, text: 'Hello this your, hello this your new honey', chant: '' },
+      { t: 25.5, text: 'Baksu chyeo, heundeureo, jungmori', chant: '' },
+      { t: 28, text: 'Oh my god, do I look too funny?', chant: '' },
+      { t: 30, text: 'Mwo eojjeollae? just [[move for me]]', chant: '' },
+      { t: 32.5, text: 'Yeah, [[move for me]]', chant: '' },
+
+      { t: 35, text: 'From the gana to the ha, uri bogo baewonwa', chant: '' },
+      { t: 37.5, text: 'Yeah we aliens', chant: '' },
+      { t: 39.7, text: 'If you wanna hit my house sinbareun beoseonwa', chant: '' },
+      { t: 42.5, text: 'Yeah we aliens', chant: '' },
+
+      { t: 44, text: 'Eojjeom geurae? shameless', chant: '' },
+      { t: 46, text: 'Yeuireul charyeo, we aliens', chant: '' },
+      { t: 48.5, text: 'Haeneun dongjjogeseo risin’', chant: '' },
+      { t: 51, text: '[[Aliens, aliens]]', chant: '' },
+
+      { t: 53, text: 'Every night every day', chant: '' },
+      { t: 55, text: 'Mwodeun deo ppareuge', chant: '' },
+      { t: 57, text: 'Maeil bamsaewodae', chant: '' },
+      { t: 60, text: 'Yeah we livin’ that', chant: '' },
+
+      { t: 61, text: '[[Aliens, aliens]]', chant: '' },
+
+      { t: 63, text: 'Every night every day', chant: '' },
+      { t: 65, text: 'Mwodeun deo ppareuge', chant: '' },
+      { t: 67, text: 'Sidaega uril wonhae', chant: '' },
+      { t: 69.7, text: 'Yeah we livin’ that', chant: '' },
+
+      { t: 71, text: '[[Aliens, aliens]]', chant: '' },
+
+      { t: 73, text: 'It goes, let me, honey, talk about the business', chant: '' },
+      { t: 75.5, text: 'Everybody know now where the K is', chant: '' },
+      { t: 78, text: 'Eodikkaji gani [[ireon jegil]]', chant: '' },
+      { t: 80, text: 'Jeojuhani ajik? [[hyungjeukdaegil]]', chant: '' },
+
+      { t: 83, text: 'Pardon gimgu seonsaengnim tell me how you feel', chant: '' },
+      { t: 85, text: 'Yeongeoneun tto nabakke mot hae but that is how we kill', chant: '' },
+      { t: 87.5, text: 'Nunman tto heobeollage keun neohuiga malhagil', chant: '' },
+      { t: 90, text: 'Are they for real? for real?', chant: '' },
+
+      { t: 92, text: 'Hello this your, hello this your new honey', chant: '' },
+      { t: 94, text: 'Baksu chyeo, heundeureo, jungmori', chant: '' },
+      { t: 96.5, text: 'Oh my god, do I look too funny', chant: '' },
+      { t: 99, text: 'Mwo eojjeollae? just [[move for me]]', chant: '' },
+      { t: 101, text: 'Yeah, [[move for me]]', chant: '' },
+
+      { t: 103.5, text: 'From the gana to the ha uri bogo baewonwa', chant: '' },
+      { t: 106, text: 'Yeah we aliens', chant: '' },
+      { t: 108.5, text: 'If you wanna hit my house sinbareun beoseonwa', chant: '' },
+      { t: 111, text: 'Yeah we aliens', chant: '' },
+
+      { t: 112, text: 'Eojjeom geurae shameless', chant: '' },
+      { t: 115, text: 'Yeuireul charyeo, we aliens', chant: '' },
+      { t: 117, text: 'Haeneun dongjjogeseo risin’', chant: '' },
+
+      { t: 119.5, text: '[[Aliens, aliens]]', chant: '' },
+
+      { t: 121.5, text: 'Every night every day', chant: '' },
+      { t: 123.5, text: 'Mwodeun deo ppareuge', chant: '' },
+      { t: 126, text: 'Maeil bamsaewodae', chant: '' },
+      { t: 128.5, text: 'Yeah we livin’ that', chant: '' },
+
+      { t: 129.5, text: '[[Aliens, aliens]]', chant: '' },
+
+      { t: 131.5, text: 'Every night every day', chant: '' },
+      { t: 133.5, text: 'Mwodeun deo ppareuge', chant: '' },
+      { t: 136.3, text: 'Sidaega uril wonhae', chant: '' },
+      { t: 138.5, text: 'Yeah we livin’ that', chant: '' },
+
+      { t: 139.5, text: '[[Aliens, aliens]]', chant: '' },
+
+      { t: 141, text: '[[(heot dul!)]] Yeah we land on it', chant: '' },
+      { t: 143.5, text: '[[(heot dul!)]] And stand on it', chant: '' },
+      { t: 146, text: '[[(heot dul!)]] jjigeo! Put that stamp on it', chant: '' },
+      { t: 149, text: 'Stamp on it, stamp on it', chant: '' },
+
+      { t: 151, text: '[[(heot dul!)]] Yeah we land on it', chant: '' },
+      { t: 153.5, text: '[[(heot dul!)]] And stand on it', chant: '' },
+      { t: 156, text: '[[(heot dul!)]] jjigeo! Put that stamp on it', chant: '' },
+      { t: 159, text: '~~Stamp on it, stamp on it~~ {{(B! T! S!)}}', chant: '' },
+    ],
+  },
+  {
+    id: 'they-dont-know',
+    title: "They Don't Know 'Bout Us",
+    note: '',
+    youtubeId: 'Dt2P9jRa7w0',
+    lyrics: [
+      { t: 13, text: 'I can show you love, I can show you', chant: '' },
+      { t: 16, text: 'If you wanna know me, what can I do for you?', chant: '' },
+      { t: 19, text: 'Daeche mwoga dallannyago jakku mureo', chant: '' },
+      { t: 22, text: 'Naneun daedapae, nado molla', chant: '' },
+
+      { t: 26, text: 'Everybody hear the story that they wanna', chant: '' },
+      { t: 29, text: 'Jyaenen igeo ttaeme tteosseo, naega majeo', chant: '' },
+      { t: 33, text: 'We just big boys a.k.a chonnom', chant: '' },
+      { t: 36, text: 'Geunyang mwo giseji, just shut up, just shut up', chant: '' },
+
+      { t: 41, text: 'Hold up, chill and take a bubble bath, bae', chant: '' },
+      { t: 44, text: 'Do the math, and go, just say what you say', chant: '' },
+      { t: 48, text: 'Oh it’s hard and that we cannot explain', chant: '' },
+      { t: 51, text: 'Every time we tryna tryna explain, we find', chant: '' },
+
+      { t: 55, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+      { t: 58, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+      { t: 62, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+      { t: 65, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+
+      { t: 68, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+      { t: 72, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+
+      { t: 75, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+      { t: 78, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+
+      { t: 82, text: 'I can show you love, I can show you', chant: '' },
+      { t: 85, text: 'If you wanna know me, what can I do for you?', chant: '' },
+      { t: 88, text: 'Daeche mwoga dallannyago jakku mureo', chant: '' },
+      { t: 92, text: 'Naneun daedapae, nado molla', chant: '' },
+
+      { t: 96, text: 'Hangsang swiun gilman chatgi bappa gwaensiri (Ayy)', chant: '' },
+      { t: 100, text: 'Ojirapdeureun taepyeongyangjjeum ppaenjiri (Uh)', chant: '' },
+      { t: 103, text: 'Algi swipge seolmyeonghae julkka, baby', chant: '' },
+      { t: 107, text: 'Mollado dwae mwol tto guji allyeo hani? Uh', chant: '' },
+
+      { t: 110, text: '“gyaenen teukbyeolhae (hae)', chant: '' },
+      { t: 112.3, text: 'Asian junge”', chant: '' },
+      { t: 114, text: '“yeongungseureoun jonjae (jae),', chant: '' },
+      { t: 115, text: 'Too hard to break”', chant: '' },
+      { t: 117, text: 'We can’t relate,', chant: '' },
+      { t: 119, text: 'Geunyang saram ilgobinde', chant: '' },
+      { t: 120, text: 'You said we changed?', chant: '' },
+      { t: 122, text: 'We feel the same, shit', chant: '' },
+
+      { t: 124, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+      { t: 128, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+      { t: 131, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+      { t: 134, text: '[[They don’t know ‘bout us, They don’t know ‘bout us]]', chant: '' },
+
+      { t: 138, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+      { t: 141, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+      { t: 145, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+      { t: 148, text: 'Yeah damn ooo damn right ooo damn right', chant: '' },
+    ],
+  },
+  {
+    id: 'like-animals',
+    title: 'Like Animals',
+    note: '',
+    youtubeId: '1BiWkZDiY7s',
+    lyrics: [
+      { t: 12.5, text: 'Take me into your deep', chant: '' },
+      { t: 15.5, text: 'I wanna lay in your world', chant: '' },
+      { t: 19.5, text: 'So what, your shadow’s a mess', chant: '' },
+      { t: 21.5, text: 'I’m walkin’ with my own dirt', chant: '' },
+
+      { t: 24.5, text: 'We can go all night', chant: '' },
+      { t: 27.5, text: 'Don’t you close your eyes', chant: '' },
+
+      { t: 30.5, text: 'Don’t you fear the light', chant: '' },
+      { t: 34.5, text: 'All night', chant: '' },
+
+      { t: 36.5, text: '[[If you wanna be animals]]', chant: '' },
+      { t: 42.5, text: '[[Baby we can be animals]]', chant: '' },
+
+      { t: 48.5, text: 'Eat this life ‘til your heart is full', chant: '' },
+      { t: 54.5, text: 'If you want, you can have it all', chant: '' },
+
+      { t: 61.5, text: 'Six feet down in the sand', chant: '' },
+      { t: 64.5, text: 'There’s creatures that made a hole', chant: '' },
+      { t: 68.5, text: 'Do speak, I’m beggin’ you, please', chant: '' },
+      { t: 70.5, text: 'There’s beauty outside control', chant: '' },
+
+      { t: 73.5, text: 'Oh we can go all night', chant: '' },
+      { t: 76.5, text: 'We can go all night', chant: '' },
+      { t: 79.5, text: 'Yeah we should go all night', chant: '' },
+      { t: 83.5, text: 'All night', chant: '' },
+
+      { t: 85.5, text: '[[If you wanna be animals]]', chant: '' },
+      { t: 91.5, text: '[[Baby we can be animals]]', chant: '' },
+
+      { t: 97.5, text: 'Eat this life ‘til your heart is full', chant: '' },
+      { t: 103.5, text: 'If you want, you can have it all', chant: '' },
+
+      { t: 110.5, text: 'Got you in the wild', chant: '' },
+      { t: 112.5, text: 'Somewhere so far', chant: '' },
+      { t: 114.5, text: 'With your claws sharp', chant: '' },
+      { t: 115.5, text: 'And them fangs out', chant: '' },
+      { t: 116.5, text: 'Now you see a whole land full of animals', chant: '' },
+      { t: 119.5, text: 'None of us are tameable', chant: '' },
+      { t: 120.5, text: 'None of us are tameable', chant: '' },
+
+      { t: 121.5, text: '(Oh-oh-oh) Heart (Oh-oh-oh) untameable', chant: '' },
+      { t: 127.5, text: '(Oh-oh-oh) [[Go]] (take it all)', chant: '' },
+      { t: 132.5, text: '[[and take it all]]', chant: '' },
+
+      { t: 133.5, text: '[[If you wanna be animals]]', chant: '' },
+      { t: 139.5, text: '[[Baby we can be animals]]', chant: '' },
+
+      { t: 145.5, text: 'Eat this life ’til your heart is full', chant: '' },
+      { t: 147.5, text: '(Heart untameable)', chant: '' },
+      { t: 151.5, text: 'If you want, you can have it all', chant: '' },
+      { t: 153.5, text: '(Go and take it all)', chant: '' },
+    ],
+  },
+  {
+    id: 'merry-go-round',
+    title: 'Merry Go Round',
+    note: '',
+    youtubeId: 'Iy0SpSLW8wo',
+    lyrics: [
+      { t: 10, text: 'I wish that I could tell you that it’s over', chant: '' },
+      { t: 16, text: 'I wish that I could walk away from pain', chant: '' },
+
+      { t: 22, text: 'My life is like a broken roller coaster', chant: '' },
+      { t: 28, text: 'But maybe I’m the only one to blame', chant: '' },
+
+      { t: 35, text: 'I can’t get off, this merry go round', chant: '' },
+      { t: 40, text: 'It spins me around', chant: '' },
+
+      { t: 46, text: 'I do my best, but I can’t slow down', chant: '' },
+      { t: 52, text: 'This merry go round', chant: '' },
+
+      { t: 56, text: '[[And I]], I can’t get off of this ride', chant: '' },
+
+      { t: 63, text: '(I can’t get off of this ride)', chant: '' },
+
+      { t: 67, text: '[[I try]], this happens every time', chant: '' },
+
+      { t: 74, text: '(I can’t get off of this ride)', chant: '' },
+
+      { t: 79, text: 'Eoreuni doen geot gateun gibunijiman', chant: '' },
+      { t: 82, text: 'Gomineun mwo yeojeonhaji', chant: '' },
+      { t: 85, text: 'Maeil gateun ilsang sok hoejeonmongmana', chant: '' },
+      { t: 88, text: 'Chetbakwina maehangaji (maehangaji)', chant: '' },
+      { t: 91, text: 'Oh, dabi eomneun jilmun', chant: '' },
+      { t: 95, text: 'Migung sogeseoui jilju', chant: '' },
+      { t: 98, text: 'Dadeul gwaenchaneun cheokamyeo', chant: '' },
+      { t: 100, text: 'Utgo itji modu [[da, da, da, da]]', chant: '' },
+
+      { t: 102, text: 'I wish that I could tell you that it’s over', chant: '' },
+      { t: 108, text: 'I wish that I could walk away from pain', chant: '' },
+
+      { t: 113, text: 'My life is like a broken roller coaster', chant: '' },
+      { t: 119, text: 'But maybe I’m the only one to blame', chant: '' },
+
+      { t: 126, text: 'I can’t get off, this merry go round', chant: '' },
+      { t: 132, text: 'It spins me around', chant: '' },
+
+      { t: 138, text: 'I do my best, but I can’t slow down', chant: '' },
+      { t: 143, text: 'This merry go round', chant: '' },
+
+      { t: 147, text: '[[And I]], I can’t get off of this ride', chant: '' },
+      { t: 154, text: '(I can’t get off of this ride)', chant: '' },
+      { t: 159, text: '[[I try]], this happens every time', chant: '' },
+      { t: 165, text: '(I can’t get off of this ride)', chant: '' },
+
+      { t: 170, text: 'Spinnin’ up down', chant: '' },
+      { t: 173, text: 'Just round ’n’ round', chant: '' },
+      { t: 176, text: 'I’m fallin’ apart', chant: '' },
+      { t: 179, text: 'Still bound to ground', chant: '' },
+
+      { t: 182, text: 'Meomchul su eomneun gulle sok', chant: '' },
+      { t: 184, text: 'Nae dongsimi sorichijana (Yeah, yeah, yeah, yeah)', chant: '' },
+      { t: 188, text: 'Na won eopsi talmankeum tasseuni', chant: '' },
+      { t: 190, text: 'Please take me out, ma', chant: '' },
+      { t: 193, text: 'Chimdaeneun naui gwan, my bed is my coffin', chant: '' },
+      { t: 196, text: 'Eojjeom nae sesangeun, geodaehan caffeine', chant: '' },
+      { t: 199, text: 'Maeil neol jugeureo ga, kkumeul kkeul sun eomna?', chant: '' },
+      { t: 202, text: 'Meomchul su eomneun chumeul chugo itjana', chant: '' },
+      { t: 205, text: 'Tto saenggage, saenggage, saenggage saenggak', chant: '' },
+      { t: 208, text: 'Saenggakaji maljan saenggageul hae nan', chant: '' },
+      { t: 211, text: 'Binggeul tto binggeul haengbokani?', chant: '' },
+      { t: 214, text: 'Useojwo kkeutkkaji', chant: '' },
+    ],
+  },
+  {
+    id: 'run-bts',
+    title: 'Run BTS',
+    note: '',
+    youtubeId: 'Cb70gcTVvYI',
+    lyrics: [
+      { t: 10.7, text: 'Nonhyeon, 100m, uri jari', chant: '' },
+      { t: 13.7, text: 'Hakgyo kkeunnamyeon hoesa calling (Ye, ye)', chant: '' },
+      { t: 17.7, text: 'Ayy, jigeum baro ttak galgeyo', chant: '' },
+      { t: 20.7, text: 'Jebal jiben bonaeji maseyo', chant: '' },
+      { t: 23.7, text: '(Oh) Gakkeum geunarui kkum kkwo (Kkum kkwo)', chant: '' },
+      { t: 26.7, text: '(Oh) Momseorichida nun tteo (Nun tteo)', chant: '' },
+      { t: 29.7, text: 'I don’t wanna go, go back again', chant: '' },
+      { t: 32.7, text: 'Let’s go, let’s go, let’s go', chant: '' },
+
+      { t: 34.7, text: 'Simnyeoneul wait, wait', chant: '' },
+      { t: 36.7, text: 'We from the bottom', chant: '' },
+      { t: 37.7, text: 'I caught you bae, bae', chant: '' },
+      { t: 39.7, text: 'Urin jom ppareum', chant: '' },
+      { t: 40.7, text: 'We seven mate, mates', chant: '' },
+      { t: 42.7, text: 'Jal bwa, we got us', chant: '' },
+      { t: 43.7, text: 'Tell me what you wanna', chant: '' },
+      { t: 45.7, text: 'Tell me what you wanna, woah', chant: '' },
+      { t: 47.7, text: 'If we live fast, let us die young', chant: '' },
+
+      { t: 49.7, text: 'Honeul ssok ppaenochi', chant: '' },
+      { t: 51.7, text: 'Make it move, left and right', chant: '' },
+      { t: 53.7, text: 'Geuge nugudeunji', chant: '' },
+      { t: 55.7, text: 'Make it move, left and right', chant: '' },
+      { t: 56.7, text: 'Du maenbari uri gasollin, yeah, yeah', chant: '' },
+      { t: 59.7, text: 'Ije gaja, are you ready? Yeah, yeah, yeah', chant: '' },
+      { t: 61.7, text: 'Okay, let’s go!', chant: '' },
+
+      { t: 63.7, text: 'Run bulletproof, run, yeah, you gotta run (Run, run)', chant: '' },
+      { t: 66.7, text: 'Run bulletproof, run, yeah, you gotta run (Run, run)', chant: '' },
+      { t: 69.7, text: 'Run bulletproof, run, yeah, you gotta run (Run, run)', chant: '' },
+      { t: 72.7, text: 'Run bulletproof, run', chant: '' },
+
+      { t: 74.7, text: 'Okay, okay, let’s go', chant: '' },
+      { t: 76.7, text: 'Naega majasseo Nonhyeon-dong-ui biga saedeon jageopsireseo', chant: '' },
+      { t: 78.7, text: 'Kkangsojureul kkamyeo sinsetaryeongina hamyeo', chant: '' },
+      { t: 79.7, text: 'Dajimhaetdeon geu mal seonggonghamyeon dadeul dwijyeosseo', chant: '' },
+      { t: 81.7, text: 'Bangtan-ui seonggong iyu? Nado molla geuttan ge eodisseo', chant: '' },
+      { t: 84.7, text: 'Urideuri modu saeppajige dallin geoji', chant: '' },
+      { t: 85.7, text: 'Mwora hadeun dallin geoji', chant: '' },
+      { t: 86.7, text: 'Dabeun yeogi isseo, ha-ha-ha', chant: '' },
+
+      { t: 87.7, text: '(Okay)', chant: '' },
+      { t: 88.7, text: 'Wiro, got them (Got them)', chant: '' },
+      { t: 89.7, text: 'Jijo, got them (Got them)', chant: '' },
+      { t: 91.7, text: 'Good music, got them (Got them)', chant: '' },
+      { t: 92.7, text: 'Good team? Goddamn! (Oh, yeah)', chant: '' },
+      { t: 94.7, text: 'You said you hot (You hot)', chant: '' },
+      { t: 95.7, text: 'Oh man, you not (You not)', chant: '' },
+      { t: 96.7, text: 'Ttwineun nom wie naneun nom wie', chant: '' },
+      { t: 98.7, text: 'Dallineun Bangtan, let’s go', chant: '' },
+
+      { t: 100.7, text: 'Simnyeoneul wait, wait', chant: '' },
+      { t: 101.7, text: 'We from the bottom', chant: '' },
+      { t: 103.7, text: 'I caught you bae, bae', chant: '' },
+      { t: 104.7, text: 'Urin jom ppareum', chant: '' },
+      { t: 106.7, text: 'We seven mate, mates', chant: '' },
+      { t: 107.7, text: 'Jal bwa we got us', chant: '' },
+      { t: 109.7, text: 'Tell me what you wanna', chant: '' },
+      { t: 111.7, text: 'Tell me what you wanna, woah', chant: '' },
+      { t: 113.7, text: 'If we live fast, let us die young', chant: '' },
+
+      { t: 115.7, text: 'Honeul ssok ppaenochi', chant: '' },
+      { t: 117.7, text: 'Make it move, left and right', chant: '' },
+      { t: 119.7, text: 'Geuge nugudeunji', chant: '' },
+      { t: 120.7, text: 'Make it move, left and right', chant: '' },
+      { t: 122.7, text: 'Du maenbari uri gasollin, yeah, yeah', chant: '' },
+      { t: 125.7, text: 'Ije gaja, are you ready? Yeah, yeah, yeah', chant: '' },
+      { t: 127.7, text: 'Let’s go!', chant: '' },
+
+      { t: 128.7, text: 'Run bulletproof, run, yeah, you gotta run (Run, run)', chant: '' },
+      { t: 132.7, text: 'Run bulletproof, run, yeah, you gotta run (Run, run)', chant: '' },
+      { t: 135.7, text: 'Run bulletproof, run, yeah, you gotta run (Run, run)', chant: '' },
+      { t: 138.7, text: 'Run bulletproof, run (Run, run)', chant: '' },
+
+      { t: 146.7, text: 'Skrrt', chant: '' },
+      { t: 147.7, text: 'Musikan mideumeuro', chant: '' },
+      { t: 149.7, text: 'Gyang dallyeo, du dariro', chant: '' },
+      { t: 150.7, text: 'That’s how we do it all (Ayy, ayy)', chant: '' },
+      { t: 154.7, text: 'Geureoke jeungmyeonghaesseo', chant: '' },
+      { t: 155.7, text: 'Ilgop chowonideul', chant: '' },
+      { t: 157.7, text: 'Baengman buljjariro (Ayy, ayy)', chant: '' },
+      { t: 159.7, text: 'Jimini, Bwi, gosaengs', chant: '' },
+      { t: 161.7, text: 'Namjooni, Hop, gosaengs', chant: '' },
+      { t: 163.7, text: 'Yoongi hyung, Jjin, gosaengs', chant: '' },
+      { t: 165.7, text: 'Jeonggugi, modu so thanks', chant: '' },
+      { t: 166.7, text: 'Get ready, get ready, get ready, get ready, get ready, apeuro deo', chant: '' },
+      { t: 169.7, text: 'Go get it, go get it, go get it, go get it, go get it, dallija run', chant: '' },
+      { t: 172.7, text: 'If we live fast, let us die young', chant: '' },
+
+      { t: 175.7, text: 'Honeul ssok ppaenochi', chant: '' },
+      { t: 176.7, text: 'Make it move, left and right', chant: '' },
+      { t: 178.7, text: 'Geuge nugudeunji', chant: '' },
+      { t: 179.7, text: 'Make it move, left and right', chant: '' },
+      { t: 181.7, text: 'Du maenbari uri gasollin, yeah, yeah', chant: '' },
+      { t: 184.7, text: 'Ije gaja, are you ready? Yeah, yeah, yeah', chant: '' },
+      { t: 186.7, text: 'Yeah (Yeah)', chant: '' },
+
+      { t: 188.7, text: 'Run beautiful, run, yeah you gotta run (Run)', chant: '' },
+      { t: 191.7, text: 'Run beautiful, run, yeah you gotta run (Run)', chant: '' },
+      { t: 194.7, text: 'Run beautiful, run, yeah you gotta run (Run)', chant: '' },
+      { t: 197.7, text: 'Run beautiful, run', chant: '' },
+    ],
+  },
+  {
+    id: 'idol',
+    title: 'IDOL',
+    note: '',
+    youtubeId: 'MXFkjMNXfpY',
+    lyrics: [
+      { t: 33, text: 'You can call me artist (Artist)', chant: '' },
+      { t: 34, text: 'You can call me idol (Idol)', chant: '' },
+      { t: 36, text: 'Anim eotteon dareun (Dareun) mwora haedo', chant: '' },
+      { t: 39, text: 'I don’t care', chant: '' },
+      { t: 41, text: 'I’m proud of it (Proud of it)', chant: '' },
+      { t: 43, text: 'Nan jayurobne (Jayurobne)', chant: '' },
+      { t: 44, text: 'No more irony (Irony)', chant: '' },
+      { t: 46, text: 'Naneun hangsang nayeossgie', chant: '' },
+
+      { t: 48, text: 'Songaragjil hae (Oh yeah, yeah, yeah),', chant: '' },
+      { t: 50, text: 'naneun jeonhyeo singyeong sseuji anhne', chant: '' },
+      { t: 52, text: 'Nareul yoghaneun (Woah!) neoui geu iyuga mwodeun gane', chant: '' },
+      { t: 56, text: 'I know what I am (I know what I am)', chant: '' },
+      { t: 57, text: 'I know what I want (I know what I want)', chant: '' },
+      { t: 59, text: 'I never gon’ change (I ain’t never gonna change)', chant: '' },
+      { t: 61, text: 'I never gon’ trade (Trade off, uh uh)', chant: '' },
+
+      { t: 64, text: 'Mwol eojjeogo jeojjeogo tteodeureodaesyeo', chant: '' },
+      { t: 68, text: '(Talk it, talk it, talk it)', chant: '' },
+      { t: 71, text: 'I do what I do, geunikka neon neona jalhasyeo (Nah, nah)', chant: '' },
+      { t: 76, text: 'You can’t stop me lovin’ myself', chant: '' },
+
+      { t: 80, text: '(Hoo hoo) Eolssu johda', chant: '' },
+      { t: 84, text: 'You can’t stop me lovin’ myself', chant: '' },
+      { t: 88, text: '(Hoo hoo) Jihwaja johda', chant: '' },
+      { t: 91.5, text: 'You can’t stop me lovin’ myself', chant: '' },
+
+      { t: 94, text: 'Oh-oh-owoah (Hey!)', chant: '' },
+      { t: 96, text: 'Oh-oh-owoah-owoah', chant: '' },
+      { t: 98, text: 'Oh-oh-owoah', chant: '' },
+      { t: 100, text: 'Deonggideok kungdeoreoreo (Eolssu)', chant: '' },
+      { t: 101.7, text: 'Oh-oh-owoah (Hey!)', chant: '' },
+      { t: 103.5, text: 'Oh-oh-owoah-owoah', chant: '' },
+      { t: 105.5, text: 'Oh-oh-owoah', chant: '' },
+      { t: 107, text: 'Deonggideok kungdeoreoreo (Eolssu)', chant: '' },
+
+      { t: 109.5, text: 'Face off machi ousam, ayy', chant: '' },
+      { t: 111, text: 'Top star with that spotlight, ayy', chant: '' },
+      { t: 113, text: 'Ttaeron syupeohieoroga dwae', chant: '' },
+      { t: 115, text: 'Dollyeodae neoui Anpanman', chant: '' },
+      { t: 117, text: 'Woah, i sipsa sigani jeogji', chant: '' },
+      { t: 119, text: 'Hesgallim, naegen sachi (Woah!)', chant: '' },
+      { t: 121, text: 'I do my thang (I do my thang)', chant: '' },
+      { t: 123.5, text: 'I love myself (I love myself)', chant: '' },
+
+      { t: 125.5, text: 'I love myself, I love my fans', chant: '' },
+      { t: 127.3, text: 'Love my dance and my what', chant: '' },
+      { t: 128, text: 'Nae soganen', chant: '' },
+      { t: 130, text: 'myeoch sib myeoch baegmyeongui naega isseo', chant: '' },
+      { t: 131.5, text: 'Oneul tto dareun nal majihae', chant: '' },
+      { t: 133.5, text: 'Eochapi jeonbu da naigie', chant: '' },
+      { t: 135.5, text: 'Gominbodaneun gyang dalline', chant: '' },
+      { t: 137.5, text: 'Runnin’ man, runnin’ man, Runnin’ man, run!', chant: '' },
+
+      { t: 140, text: 'Mwol eojjeogo jeojjeogo tteodeureodaesyeo', chant: '' },
+      { t: 144, text: '(Talk it, talk it, talk it)', chant: '' },
+      { t: 147, text: 'I do what I do, geunikka neon neona jalhasyeo', chant: '' },
+      { t: 153, text: 'You can’t stop me lovin’ myself', chant: '' },
+
+      { t: 156, text: '(Hoo hoo) Eolssu johda', chant: '' },
+      { t: 160, text: 'You can’t stop me lovin’ myself', chant: '' },
+      { t: 164, text: '(Hoo hoo) Jihwaja johda', chant: '' },
+      { t: 168, text: 'You can’t stop me lovin’ myself', chant: '' },
+
+      { t: 170, text: 'Oh-oh-owoah (Hey!)', chant: '' },
+      { t: 172, text: 'Oh-oh-owoah-owoah', chant: '' },
+      { t: 174, text: 'Oh-oh-owoah', chant: '' },
+      { t: 176, text: 'Deonggideok kungdeoreoreo (Eolssu)', chant: '' },
+      { t: 178, text: 'Oh-oh-owoah (Hey!)', chant: '' },
+      { t: 180, text: 'Oh-oh-owoah-owoah', chant: '' },
+      { t: 182, text: 'Oh-oh-owoah', chant: '' },
+      { t: 184, text: 'Deonggideok kungdeoreoreo (Eolssu)', chant: '' },
+
+      { t: 186, text: 'I’m so fine wherever I go (I go, I go, I go, I go)', chant: '' },
+      { t: 189, text: 'Gakkeum meolli doragado (oh)', chant: '' },
+      { t: 193, text: 'It’s okay, I’m in love with my-my myself', chant: '' },
+      { t: 196, text: 'It’s okay, nan i sungan haengbokhae!', chant: '' },
+
+      { t: 202, text: '(Hoo hoo) Eolssu johda', chant: '' },
+      { t: 206, text: 'You can’t stop me lovin’ myself', chant: '' },
+      { t: 210, text: '(Hoo hoo) Jihwaja johda', chant: '' },
+      { t: 214, text: 'You can’t stop me lovin’ myself', chant: '' },
+
+      { t: 216, text: 'Oh-oh-owoah (Hey!)', chant: '' },
+      { t: 218, text: 'Oh-oh-owoah-owoah', chant: '' },
+      { t: 220, text: 'Oh-oh-owoah', chant: '' },
+      { t: 222, text: 'Deonggideok kungdeoreoreo (Eolssu)', chant: '' },
+      { t: 223.5, text: 'Oh-oh-owoah (Hey!)', chant: '' },
+      { t: 225.5, text: 'Oh-oh-owoah-owoah', chant: '' },
+      { t: 227.5, text: 'Oh-oh-owoah', chant: '' },
+      { t: 229, text: 'Deonggideok kungdeoreoreo (Eolssu)', chant: '' },
+    ],
+  },
+  {
+    id: 'fire',
+    title: 'Fire',
+    note: '',
+    youtubeId: 'lYC67_STvLI',
+    lyrics: [
+      { t: 30, text: 'Bultaoreune', chant: '' },
+
+      { t: 34, text: '[[Fire]]', chant: '' },
+      { t: 39, text: '[[Fire]]', chant: '' },
+      { t: 44, text: '[[Fire]]', chant: '' },
+      { t: 49, text: '[[Fire]]', chant: '' },
+
+      { t: 52, text: 'When I wake up in my room {{(room)}}', chant: '' },
+      { t: 55, text: 'Nan mwotdo eopji', chant: '' },
+      { t: 57, text: 'Haega jigo nan hu {{(hu)}}', chant: '' },
+      { t: 59, text: 'Biteuldaemyeo geotji', chant: '' },
+
+      { t: 61, text: 'Da mansinchangiro chwihaesseo [[chwihaesseo]]', chant: '' },
+      { t: 64, text: 'Mak yokae gireseo [[gireseo]]', chant: '' },
+      { t: 67, text: 'Na masi gatji michinnom gatji', chant: '' },
+      { t: 69, text: 'Da eongmangjinchang livin’ like [[ppii]]', chant: '' },
+
+      { t: 72, text: 'Ni meotdaero sareo {{(sareo)}}', chant: '' },
+      { t: 74, text: 'Eochapi ni kkeoya {{(ni kkeoya)}}', chant: '' },
+      { t: 76, text: 'Aesseuji jom mareo {{(mareo)}}', chant: '' },
+      { t: 79, text: 'Jyeodo gwaenchana {{(gwaenchana)}}', chant: '' },
+
+      { t: 81, text: 'Errbody say La la la la la {{(La la la la la)}}', chant: '' },
+      { t: 84, text: 'Say La la la la la {{(La la la la la)}}', chant: '' },
+      { t: 87, text: 'Soneul deureo sorijilleo Burn it up', chant: '' },
+
+      { t: 90, text: 'Bultaoreune', chant: '' },
+
+      { t: 92, text: '{{(BTS! BTS!)}} ayy-oh ayy-oh! Ssak da bultaewora [[Bow wow wow]]', chant: '' },
+      { t: 102, text: '{{(BTS! BTS!)}} ayy-oh ayy-oh! Ssak da bultaewora [[Bow wow wow]]', chant: '' },
+
+      { t: 111, text: 'Hey burn it up {{(burn it up)}}', chant: '' },
+      { t: 113, text: 'Jeonbu da taeul geot gachi', chant: '' },
+      { t: 115, text: 'Hey turn it up {{(turn it up)}}', chant: '' },
+      { t: 117, text: 'Saebyeogi da gal ttaekkaji', chant: '' },
+      { t: 120, text: 'Geunyang sarado dwae', chant: '' },
+      { t: 121, text: '[[Urin jeolgie]]', chant: '' },
+      { t: 123, text: 'Geu malhaneun neon', chant: '' },
+      { t: 124, text: '[[Mwon sujeogillae]]', chant: '' },
+      { t: 125, text: 'Sujeosujeo georyeo nan saraminde {{(hamseong)}}', chant: '' },
+      { t: 127, text: 'So what', chant: '' },
+
+      { t: 129, text: 'Ni meotdaero sareo {{(sareo)}}', chant: '' },
+      { t: 131, text: 'Eochapi ni kkeoya {{(ni kkeoya)}}', chant: '' },
+      { t: 134, text: 'Aesseuji jom mareo {{(mareo)}}', chant: '' },
+      { t: 136, text: 'Jyeodo gwaenchana {{(gwaenchana)}}', chant: '' },
+
+      { t: 139, text: 'Errbody say La la la la la {{(La la la la la)}}', chant: '' },
+      { t: 142, text: 'Say La la la la la {{(La la la la la)}}', chant: '' },
+      { t: 144, text: 'Soneul deureo sorijilleo Burn it up', chant: '' },
+
+      { t: 148, text: 'Bultaoreune', chant: '' },
+
+      { t: 150, text: '{{(BTS! BTS!)}} ayy-oh ayy-oh! Ssak da bultaewora [[Bow wow wow]]', chant: '' },
+      { t: 159, text: '{{(BTS! BTS!)}} ayy-oh ayy-oh! Ssak da bultaewora [[Bow wow wow]]', chant: '' },
+
+      { t: 168, text: '[[Fire]] geop maneun jayeo yeogiro', chant: '' },
+      { t: 171, text: '[[Fire]] goeroun jayeo yeogiro', chant: '' },
+      { t: 173, text: '[[Fire]] maenjumeogeul deulgo All night long', chant: '' },
+      { t: 178, text: '[[Fire]] jingunhaneun balgeoreumeuro', chant: '' },
+      { t: 180, text: '[[Fire]] ttwieobwa', chant: '' },
+      { t: 185, text: 'Michyeobeoryeo da…', chant: '' },
+      { divider: true, text: '(——————— FIRE + FYA Ending Remix starts ———————)' },
+    ],
+  },
+  /* --- TEMPORARILY REMOVED: 2!3! (ARMY Time / Bonus). Uncomment to restore. ---
+  {
+    id: '2-3',
+    title: '2!3!',
+    note: 'We will sing this during the start of ARMY Time on Day 1',
+    youtubeId: 'E30APZxHh4c',
+    // Only this section is performed during ARMY Time.
+    start: 66,
+    end: 122,
+    lyrics: [
+      { t: 67, text: '<<Gwaenchanha>>', chant: '' },
+      { t: 69, text: '<<ja hana dul set hamyeon ijeo>>', chant: '' },
+      { t: 71.5, text: '<<Seulpeun gieok modu jiwo>>', chant: '' },
+      { t: 75, text: '<<Nae soneul japgo useo>>', chant: '' },
+      { t: 78, text: '<<Gwaenchanha>>', chant: '' },
+      { t: 80, text: '<<ja hana dul set hamyeon ijeo>>', chant: '' },
+      { t: 83, text: '<<Seulpeun gieok modu jiwo>>', chant: '' },
+      { t: 86, text: '<<Seoro soneul japgo useo>>', chant: '' },
+
+      { t: 89, text: '<<Geuraedo joheun nari apeuro manhgireul>>', chant: '' },
+      { t: 94, text: '<<Nae mareul mitneundamyeon hana dul set>>', chant: '' },
+      { t: 98, text: '<<Mitneundamyeon hana dul set>>', chant: '' },
+      { t: 100, text: '<<Geuraedo joheun nari hwolssin deo manhgireul>>', chant: '' },
+      { t: 106, text: '<<Nae mareul mitneundamyeon hana dul set>>', chant: '' },
+      { t: 109, text: '<<Mitneundamyeon hana dul set>>', chant: '' },
+    ],
+  },
+  --- end 2!3! --- */
 ]
 
 // ============================================================================
@@ -1314,13 +1998,13 @@ export const coreSetlist = [
     act: 'Act 1',
     songs: [
       { n: 1, title: 'Hooligan', id: 'hooligan' },
-      { n: 2, title: 'Aliens' },
-      { n: 3, title: 'Run BTS' },
-      { n: 4, title: "They Don't Know 'Bout Us" },
-      { n: 5, title: 'Like Animals' },
+      { n: 2, title: 'Aliens', id: 'aliens' },
+      { n: 3, title: 'Run BTS', id: 'run-bts' },
+      { n: 4, title: "They Don't Know 'Bout Us", id: 'they-dont-know' },
+      { n: 5, title: 'Like Animals', id: 'like-animals' },
       { n: 6, title: 'FAKE LOVE', id: 'fake-love' },
       { n: 7, title: 'SWIM', id: 'swim' },
-      { n: 8, title: 'Merry Go Round' },
+      { n: 8, title: 'Merry Go Round', id: 'merry-go-round' },
     ],
   },
   {
@@ -1331,21 +2015,24 @@ export const coreSetlist = [
       { n: 11, title: 'Not Today', id: 'not-today' },
       { n: 12, title: 'MIC Drop', id: 'mic-drop' },
       { n: 13, title: 'FYA', id: 'fya' },
-      { n: 14, title: 'Fire' },
-      { n: 15, title: 'Body to Body' },
-      { n: 16, title: 'IDOL' },
+      { n: 14, title: 'Fire', id: 'fire' },
+      { n: 15, title: 'Body to Body', id: 'body-to-body' /* , fanProject: true */ },
+      { n: 16, title: 'IDOL', id: 'idol' },
     ],
   },
   {
     act: 'Encore',
     songs: [
-      { n: 17, title: 'Come Over', id: 'come-over' },
+      { n: 17, title: 'Come Over', id: 'come-over' /* , fanProject: true */ },
       { n: 18, title: 'Butter', id: 'butter' },
       { n: 19, title: 'Dynamite', id: 'dynamite' },
       { n: 20, title: '(Surprise Song 1)', surprise: true },
       { n: 21, title: '(Surprise Song 2)', surprise: true },
       { n: 22, title: 'Please', id: 'please' },
       { n: 23, title: 'Into the Sun', id: 'into-the-sun' },
+      // Not part of the setlist proper — sung during ARMY Time, so it shows a
+      // label instead of a running-order number. TEMPORARILY REMOVED:
+      // { label: 'Bonus', title: '2!3!', id: '2-3', fanProject: true },
     ],
   },
 ]

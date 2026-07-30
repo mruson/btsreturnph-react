@@ -39,8 +39,9 @@ function VotingCard({ item }) {
 export default function Voting() {
   const [tab, setTab] = useState('ongoing')
 
-  // Live votings from the "Votings" sheet, grouped by status.
-  const rows = useSheet(sheets.id, sheets.tabs.votings, fallbackVotings)
+  // Live votings from the "Votings" sheet, grouped by status. No loading state
+  // needed — `fallbackVotings` is real content, so there's never a blank gap.
+  const { rows } = useSheet(sheets.id, sheets.tabs.votings, fallbackVotings)
   const grouped = useMemo(
     () => ({
       ongoing: rows.filter((r) => String(r.status).toLowerCase().trim() === 'ongoing'),
@@ -56,7 +57,13 @@ export default function Voting() {
         <div className="container-page py-16 text-center sm:py-20">
           <div className="mx-auto flex max-w-3xl flex-col items-center">
             <div className="flex items-center gap-4">
-              <img src="/about/reclaim.png" alt="BTS RE:CLAIM PH" className="h-16 w-16 object-contain" />
+              <img
+                src="/about/reclaim.png"
+                alt="BTS RE:CLAIM PH"
+                width="440"
+                height="440"
+                className="h-16 w-16 object-contain"
+              />
               <span className="font-display text-5xl font-extrabold sm:text-6xl">RE:CLAIM</span>
             </div>
             <p className="mt-4 text-lg text-white/90">
@@ -117,7 +124,15 @@ export default function Voting() {
               className="grid overflow-hidden rounded-2xl border border-black/5 shadow-sm sm:grid-cols-2"
             >
               <div className="flex items-center justify-center bg-white p-5">
-                <img src={app.icon} alt={`${app.name} icon`} className="w-full max-w-[200px]" />
+                <img
+                  src={app.icon}
+                  alt={`${app.name} icon`}
+                  width="400"
+                  height="400"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full max-w-[200px]"
+                />
               </div>
               <div className="flex flex-col bg-purple-light p-6 text-white">
                 <h3 className="font-display text-xl font-extrabold">{app.name}</h3>
