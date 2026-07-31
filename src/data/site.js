@@ -17,9 +17,10 @@ export const site = {
 export const sheets = {
   id: '18cGrJpXmUbb_NYj2cHa9y1pPRKVk193sVarcUOurN4M',
   tabs: {
-    updates: 'Posts', // columns: date | title | blurb | image (public image URL) | link (post URL)
+    updates: 'Posts', // columns: date | title | blurb | image (public image URL) | link (post URL) | active (uncheck to hide from the carousel)
+    fanProjects: 'FanProjects', // "Help make our fan projects a reality" grid on /concert. columns: name | description | target | image | link (a site path like /fan-projects, or an external URL) | button_text (label for that link) | active
     fund: 'Fund', // columns: label | raised | goal  (totals are summed automatically)
-    products: 'BANGTANdahan', // columns: name | price | category | tag | image
+    products: 'BANGTANdahan', // columns: name | price | category | tag | image | active (uncheck to mark SOLD OUT)
     sponsors: 'Sponsors', // Brand Partners page. columns: name | tier (PLATINUM/GOLD/SILVER/BRONZE/IN-KIND) | logo | link (social media URL)
     votings: 'Votings', // columns: status (ongoing/upcoming) | award | nominee | start | app
     events: 'Events', // columns: date | title | desc | link (sign-up form URL)

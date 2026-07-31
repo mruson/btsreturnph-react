@@ -1,20 +1,11 @@
 import { useEffect, useState } from 'react'
-import { driveImage } from '../lib/sheet'
+import { driveImage, isActive } from '../lib/sheet'
 import { DEPARTMENTS, PM_DEPT } from '../data/team'
 
 // --- Sheet value helpers ---------------------------------------------------
 
 // "MARKETING & SPONSORSHIPS", " marketing  &  sponsorships " → same key.
 const norm = (v) => String(v ?? '').trim().toUpperCase().replace(/\s+/g, ' ')
-
-// The gviz response hands back the *formatted* cell value, so an unchecked
-// checkbox arrives as the string "FALSE" — which is truthy in JS. Anything not
-// explicitly falsey counts as active, including a blank cell, so a row nobody
-// remembered to tick still shows up rather than silently vanishing.
-function isActive(value) {
-  if (value === '' || value == null) return true
-  return !['false', 'no', '0', 'n'].includes(String(value).trim().toLowerCase())
-}
 
 // Rows for one department, honouring `active`. Display order is sheet order —
 // to move a fanbase up its column, drag its row up in the tab.

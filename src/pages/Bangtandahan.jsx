@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CityPageHero, CityImagePlaceholder, Skeleton, LoadError } from '../components/UI'
-import { useSheet, driveImage, num } from '../lib/sheet'
+import { useSheet, driveImage, isActive, num } from '../lib/sheet'
 import { sheets } from '../data/site'
 
 const SORTS = [
@@ -10,6 +10,10 @@ const SORTS = [
   { value: 'az', label: 'Name: A–Z' },
   { value: 'za', label: 'Name: Z–A' },
 ]
+
+// Unticking `active` in the sheet keeps the product on the page but marks it
+// SOLD OUT — shoppers still see what was on offer, they just can't order it.
+const isSoldOut = (p) => !isActive(p.active)
 
 // A product counts as on sale only when the sheet says on_sale is TRUE *and*
 // sale_price is filled in. Either one on its own shows no SALE indicator.
@@ -22,7 +26,14 @@ function isOnSale(p) {
 // What the shopper actually pays — the sale price when on sale, else the price.
 const effectivePrice = (p) => num(isOnSale(p) ? p.sale_price : p.price)
 
+// Sold-out items always sink below the buyable ones, whichever sort is picked —
+// the chosen order still applies within each group.
 function sortProducts(list, sort) {
+  const arr = applySort(list, sort)
+  return [...arr.filter((p) => !isSoldOut(p)), ...arr.filter(isSoldOut)]
+}
+
+function applySort(list, sort) {
   const arr = [...list]
   switch (sort) {
     case 'price-asc':
@@ -52,7 +63,8 @@ const showPrice = (v) => {
 // EDIT ME — BANGTANdahan products (the virtual sari-sari store).
 // ---------------------------------------------------------------------------
 // Live from the "BANGTANdahan" tab: name | price | category | tag | image
-// (plus optional on_sale + sale_price, which together add a SALE badge).
+// (plus optional on_sale + sale_price, which together add a SALE badge, and
+// `active` — untick it to show the product as SOLD OUT).
 //
 // Deliberately empty. `useSheet` renders this fallback immediately and only
 // swaps in real rows once the fetch resolves, so placeholder items would show
@@ -277,11 +289,18 @@ Our virtual ARMY sari-sari store — from shoe laces to concert bags, all in one
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {sorted.map((p) => {
-              const sale = isOnSale(p)
+              const soldOut = isSoldOut(p)
+              // A sold-out item isn't buyable, so a SALE badge on it would only
+              // tease — SOLD OUT is the one thing worth saying.
+              const sale = !soldOut && isOnSale(p)
               return (
                 <article
                   key={p.name}
-                  className="group flex flex-col overflow-hidden rounded-2xl border-2 border-city-ink/10 bg-white shadow-sm transition hover:-translate-y-1 hover:border-city-crimson/40 hover:shadow-md"
+                  className={`group flex flex-col overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition ${
+                    soldOut
+                      ? 'border-city-ink/10'
+                      : 'border-city-ink/10 hover:-translate-y-1 hover:border-city-crimson/40 hover:shadow-md'
+                  }`}
                 >
                   <div className="relative">
                     {p.image ? (
@@ -296,7 +315,9 @@ Our virtual ARMY sari-sari store — from shoe laces to concert bags, all in one
                           alt={p.name}
                           loading="lazy"
                           decoding="async"
-                          className="aspect-square w-full border-b-2 border-city-ink/10 object-cover"
+                          className={`aspect-square w-full border-b-2 border-city-ink/10 object-cover ${
+                            soldOut ? 'opacity-60 grayscale' : ''
+                          }`}
                         />
                       </button>
                     ) : (
@@ -305,6 +326,11 @@ Our virtual ARMY sari-sari store — from shoe laces to concert bags, all in one
                         ratio="aspect-square"
                         className="rounded-none border-0 border-b-2"
                       />
+                    )}
+                    {soldOut && (
+                      <span className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 bg-city-ink/85 py-2 text-center font-manila text-lg uppercase tracking-[0.3em] text-white">
+                        Sold Out
+                      </span>
                     )}
                     {p.tag && (
                       <span className="absolute left-3 top-3 rounded-full bg-city-sky px-3 py-1 font-manila-body text-xs font-bold uppercase tracking-wide text-white">
@@ -323,10 +349,15 @@ Our virtual ARMY sari-sari store — from shoe laces to concert bags, all in one
                     </p>
                     <h3 className="mt-1 font-manila text-lg uppercase leading-tight">{p.name}</h3>
                     <div className="mt-3 flex flex-1 flex-wrap items-end gap-x-2 gap-y-1">
-                      {/* Sari-sari price tag — the sale price takes over when on sale */}
+                      {/* Sari-sari price tag — the sale price takes over when on sale,
+                          and a sold-out item's tag goes grey so it reads as inactive. */}
                       <span
                         className={`inline-flex items-center rounded-md px-3 py-1 font-manila text-lg leading-none ${
-                          sale ? 'bg-city-crimson text-white' : 'bg-city-yellow text-city-ink'
+                          soldOut
+                            ? 'bg-city-ink/10 text-city-ink/50'
+                            : sale
+                              ? 'bg-city-crimson text-white'
+                              : 'bg-city-yellow text-city-ink'
                         }`}
                       >
                         {showPrice(sale ? p.sale_price : p.price)}
@@ -334,6 +365,11 @@ Our virtual ARMY sari-sari store — from shoe laces to concert bags, all in one
                       {sale && p.price && (
                         <span className="font-manila-body text-sm font-semibold text-city-ink/50 line-through">
                           {showPrice(p.price)}
+                        </span>
+                      )}
+                      {soldOut && (
+                        <span className="font-manila-body text-sm font-bold uppercase tracking-wide text-city-ink/50">
+                          Ubos na
                         </span>
                       )}
                     </div>

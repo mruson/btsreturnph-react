@@ -6,6 +6,15 @@ export function num(value) {
   return Number.isFinite(n) ? n : 0
 }
 
+// The gviz response hands back the *formatted* cell value, so an unchecked
+// checkbox arrives as the string "FALSE" — which is truthy in JS. Anything not
+// explicitly falsey counts as active, including a blank cell, so a row nobody
+// remembered to tick still shows up rather than silently vanishing.
+export function isActive(value) {
+  if (value === '' || value == null) return true
+  return !['false', 'no', '0', 'n'].includes(String(value).trim().toLowerCase())
+}
+
 // Normalize an image cell value into a usable <img src>. Accepts a Google Drive
 // share link, an "open?id="/"uc?id=" link, or a bare Drive file ID, and turns it
 // into a direct thumbnail URL. Any other URL or local path is returned unchanged.

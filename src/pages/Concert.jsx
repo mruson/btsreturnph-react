@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { CityPageHero, CityImagePlaceholder, Skeleton, LoadError } from '../components/UI'
-import { useSheet, driveImage, num } from '../lib/sheet'
+import { useSheet, driveImage, isActive, num } from '../lib/sheet'
 import { sheets } from '../data/site'
 
 // ---------------------------------------------------------------------------
@@ -9,6 +9,7 @@ import { sheets } from '../data/site'
 // ---------------------------------------------------------------------------
 
 // Latest posts / updates shown in the carousel — live from the "Posts" tab.
+// A row whose `active` box is unticked never reaches the carousel.
 //
 // Deliberately empty. `useSheet` renders this fallback immediately and only
 // swaps in real rows once the fetch resolves, so anything here is shown to every
@@ -16,16 +17,54 @@ import { sheets } from '../data/site'
 // about a real event.
 const updates = []
 
-// Fan projects for BTS in Manila.
+// Fan projects for BTS in Manila — live from the "FanProjects" tab:
+//   name | description | target | image | link | button_text | active
+//
+//   description — optional line under the title
+//   target      — optional "Target: …" pill
+//   image       — a Drive share link, or a local path like /concert/bus-wrap.webp
+//   link        — optional. A site path (/fan-projects) makes the card an
+//                 internal link; an http(s) URL opens in a new tab.
+//   button_text — the call to action for that link ("Avail ride to Bulacan").
+//                 Blank falls back to "See the projects".
+//   active      — untick to pull a card without deleting the row
+//
+// Unlike the Posts and Fund fallbacks, this list is kept filled in: it's real,
+// already-published content pointing at images we ship in /public, so showing it
+// while the sheet loads (or if it fails) is right rather than misleading.
 const projects = [
-  { name: 'Lamp Post Banners', target: '20 – 60 posts', img: '/concert/lamp-post-banner.webp' },
-  { name: 'Aerial Banners', target: '2 – 5 flyovers', img: '/concert/aerial-banner.webp' },
-  { name: 'Surprise Fan Projects (Team Loob)', target: '10,000 – 50,000', img: '/concert/hand-banners.webp', to: '/fan-projects' },
-  { name: 'Bus Wraps', target: '2 – 8 buses', img: '/concert/bus-wrap.webp' },
-  { name: 'Concert Kits', target: '10,000 – 50,000', img: '/concert/concert-kit.webp' },
-  { name: 'Lighting Events', target: 'Manila → Nationwide', img: '/concert/lighting-events.webp' },
-  { name: 'Airport Welcome Project', target: '3 – 10 screens', img: '/concert/airport-welcome.webp' },
+  { name: 'Lamp Post Banners', target: '20 – 60 posts', image: '/concert/lamp-post-banner.webp' },
+  { name: 'Aerial Banners', target: '2 – 5 flyovers', image: '/concert/aerial-banner.webp' },
+  { name: 'Surprise Fan Projects (Team Loob)', target: '10,000 – 50,000', image: '/concert/hand-banners.webp', link: '/fan-projects' },
+  { name: 'Bus Wraps', target: '2 – 8 buses', image: '/concert/bus-wrap.webp' },
+  { name: 'Concert Kits', target: '10,000 – 50,000', image: '/concert/concert-kit.webp' },
+  { name: 'Lighting Events', target: 'Manila → Nationwide', image: '/concert/lighting-events.webp' },
+  { name: 'Airport Welcome Project', target: '3 – 10 screens', image: '/concert/airport-welcome.webp' },
 ]
+
+// Label for a card's call to action. The arrow is drawn by the card, so a
+// button_text that already ends in one doesn't render "Bili na → →".
+const ctaLabel = (value) => {
+  const s = String(value ?? '').replace(/[→>\s]+$/, '').trim()
+  return s || 'See the projects'
+}
+
+// The sheet is editable by several people, so only two shapes are honoured:
+// a same-site path (rendered as a client-side <Link>) and an http(s) URL
+// (rendered as a new-tab <a>). Anything else — `javascript:`, mailto, junk —
+// yields no link at all and the card stays a plain <article>.
+function projectLink(value) {
+  const s = String(value ?? '').trim()
+  if (!s) return null
+  if (s.startsWith('/')) return { kind: 'internal', href: s }
+  try {
+    const { protocol } = new URL(s)
+    if (protocol === 'http:' || protocol === 'https:') return { kind: 'external', href: s }
+  } catch {
+    // not a URL — fall through
+  }
+  return null
+}
 
 // Fundraising snapshot — live from the "Fund" tab. `status` mirrors the sheet:
 // "incomplete" rows are still raising (Fund Update), "complete" rows are secured.
@@ -142,7 +181,9 @@ function UpdatesCarousel({ items }) {
 
 export default function Concert() {
   // Live "What's new" items from the Google Sheet, falling back to `updates`.
-  // Sorted by date, newest first — so order doesn't depend on sheet row position.
+  // Rows with `active` unchecked are dropped, so a post can be pulled from the
+  // carousel without deleting it. Sorted by date, newest first — so order
+  // doesn't depend on sheet row position.
   const {
     rows: updateItems,
     loading: updatesLoading,
@@ -151,15 +192,24 @@ export default function Concert() {
   } = useSheet(sheets.id, sheets.tabs.updates, updates)
   const sortedUpdates = useMemo(
     () =>
-      [...updateItems].sort((a, b) => {
-        const da = Date.parse(a.date)
-        const db = Date.parse(b.date)
-        if (isNaN(da) && isNaN(db)) return 0
-        if (isNaN(da)) return 1
-        if (isNaN(db)) return -1
-        return db - da
-      }),
+      updateItems
+        .filter((u) => isActive(u.active))
+        .sort((a, b) => {
+          const da = Date.parse(a.date)
+          const db = Date.parse(b.date)
+          if (isNaN(da) && isNaN(db)) return 0
+          if (isNaN(da)) return 1
+          if (isNaN(db)) return -1
+          return db - da
+        }),
     [updateItems],
+  )
+
+  // Fan project cards, live from the Sheet with the list above as the fallback.
+  const { rows: projectRows } = useSheet(sheets.id, sheets.tabs.fanProjects, projects)
+  const activeProjects = useMemo(
+    () => projectRows.filter((p) => String(p.name ?? '').trim() && isActive(p.active)),
+    [projectRows],
   )
 
   // Live fund ledger from the Sheet; overall raised/goal are summed from rows.
@@ -246,18 +296,24 @@ export default function Concert() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => {
+            {activeProjects.map((p) => {
               // Projects with a page of their own become links.
-              const Card = p.to ? Link : 'article'
+              const link = projectLink(p.link)
+              const Card = link ? (link.kind === 'internal' ? Link : 'a') : 'article'
+              const linkProps = !link
+                ? {}
+                : link.kind === 'internal'
+                  ? { to: link.href }
+                  : { href: link.href, target: '_blank', rel: 'noreferrer' }
               return (
               <Card
                 key={p.name}
-                {...(p.to ? { to: p.to } : {})}
+                {...linkProps}
                 className="flex flex-col rounded-2xl border-2 border-city-ink/10 bg-city-cream shadow-sm transition hover:-translate-y-1 hover:border-city-crimson/40 hover:shadow-md"
               >
-                {p.img ? (
+                {p.image ? (
                   <img
-                    src={p.img}
+                    src={driveImage(p.image)}
                     alt={p.name}
                     width="800"
                     height="450"
@@ -269,16 +325,27 @@ export default function Concert() {
                   <CityImagePlaceholder label={p.name} ratio="aspect-video" className="rounded-b-none border-0 border-b-2" />
                 )}
                 <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-manila text-xl uppercase leading-tight">{p.name}</h3>
-                  {/* Projects with their own page swap the target pill for a link. */}
-                  {p.to ? (
+                  {/* The target rides alongside the name — it reads as part of the
+                      title, and leaves the foot of the card to the call to action. */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <h3 className="font-manila text-xl uppercase leading-tight">{p.name}</h3>
+                    {p.target && (
+                      <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-city-yellow/30 px-3 py-1 font-manila-body text-xs font-bold uppercase tracking-wide text-city-ink">
+                        {/* The dart carries the meaning visually; screen readers get
+                            the word, since "🎯" alone announces as "direct hit". */}
+                        <span aria-hidden="true">🎯</span>
+                        <span className="sr-only">Target:</span>
+                        {p.target}
+                      </p>
+                    )}
+                  </div>
+                  {p.description && (
+                    <p className="mt-2 text-sm text-city-ink/70">{p.description}</p>
+                  )}
+                  {link && (
                     <span className="mt-auto pt-3 font-manila-body text-xs font-bold uppercase tracking-wide text-city-crimson">
-                      See the projects →
+                      {ctaLabel(p.button_text)} →
                     </span>
-                  ) : (
-                    <p className="mt-auto inline-flex w-fit rounded-full bg-city-yellow/30 px-3 py-1 font-manila-body text-xs font-bold uppercase tracking-wide text-city-ink">
-                      Target: {p.target}
-                    </p>
                   )}
                 </div>
               </Card>

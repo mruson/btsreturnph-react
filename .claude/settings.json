@@ -41,7 +41,8 @@
       "Bash(curl -s -o /dev/null -w \"proxy 4290 alive: %{http_code}\\\\n\" http://127.0.0.1:4290/)",
       "Bash(git mv *)",
       "Bash(grep -o '<script>.\\\\{0,200\\\\}' /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/8e8a448d-b08c-4ee9-b0d2-2da059ad9c24/scratchpad/dist-slow/index.html)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git diff *)"
     ],
     "additionalDirectories": [
       "/Users/majchaty/Desktop/btsreturnph-react/src/pages"
