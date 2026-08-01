@@ -19,7 +19,13 @@ export const sheets = {
   tabs: {
     updates: 'Posts', // columns: date | title | blurb | image (public image URL) | link (post URL) | active (uncheck to hide from the carousel)
     fanProjects: 'FanProjects', // "Help make our fan projects a reality" grid on /concert. columns: name | description | target | image | link (a site path like /fan-projects, or an external URL) | button_text (label for that link) | active
-    fund: 'Fund', // columns: label | raised | goal  (totals are summed automatically)
+    // columns: label | description | raised | goal | num_raised | num_goal | unit | status
+    // Per-unit rows (lamp posts, buses): num_goal = how many we want, num_raised
+    // = how many are secured, goal = cost of ONE, raised = money toward the next
+    // one, unit = its singular name ("banner", "bus"). The headline total adds
+    // the secured units back in, so it stays the full amount raised.
+    // Lump-sum rows: leave num_* and unit blank; raised/goal are the totals.
+    fund: 'Fund',
     products: 'BANGTANdahan', // columns: name | price | category | tag | image | active (uncheck to mark SOLD OUT)
     sponsors: 'Sponsors', // Brand Partners page. columns: name | tier (PLATINUM/GOLD/SILVER/BRONZE/IN-KIND) | logo | link (social media URL)
     votings: 'Votings', // columns: status (ongoing/upcoming) | award | nominee | start | app

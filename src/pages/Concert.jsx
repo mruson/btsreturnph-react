@@ -87,26 +87,152 @@ const has = (v) => v !== '' && v != null
 
 // ---------------------------------------------------------------------------
 
-// Mirrors the Fund update card's shape — total, progress bar, three per-project
+// Past this many units the pips stop being countable at a glance and start
+// being a texture, so a wide row like "50,000 hand banners" falls back to a
+// plain proportional bar instead of 50,000 <span>s.
+const MAX_PIPS = 60
+
+// Mirrors the Fund update card's shape — total, then three per-project
 // columns — so the section doesn't resize when the real figures arrive.
 function FundSkeleton() {
   return (
     <div className="rounded-2xl border-2 border-city-ink/10 bg-white p-6 shadow-sm sm:p-8">
       <Skeleton city className="h-8 w-44" />
-      <div className="mt-5 flex flex-wrap items-end justify-between gap-2">
+      <div className="mt-5 flex flex-wrap items-baseline gap-4">
         <Skeleton city className="h-11 w-52" />
-        <Skeleton city className="h-4 w-40" />
+        <Skeleton city className="h-4 w-28" />
       </div>
-      <Skeleton city className="mt-4 h-4 w-full rounded-full" />
-      <div className="mt-8 grid gap-6 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <div key={i}>
-            <Skeleton city className="h-4 w-32" />
-            <Skeleton city className="mt-2 h-2.5 w-full rounded-full" />
-            <Skeleton city className="mt-2 h-3 w-24" />
-          </div>
+          <Skeleton key={i} city className="h-44 w-full rounded-xl" />
         ))}
       </div>
+    </div>
+  )
+}
+
+// One square per banner / bus: filled for the ones already secured. The count
+// is the headline of a unitised row, so it gets read before any peso figure.
+function UnitPips({ secured, total, label }) {
+  if (total > MAX_PIPS) {
+    return (
+      <div
+        className="mb-4 mt-3 h-2.5 overflow-hidden rounded-full bg-city-ink/15"
+        role="img"
+        aria-label={label}
+      >
+        <div
+          className="h-full rounded-full bg-city-crimson"
+          style={{ width: `${pct(secured, total)}%` }}
+        />
+      </div>
+    )
+  }
+  return (
+    <div
+      // mb-4 rather than a margin on the block below: that one is pushed down
+      // with mt-auto, which collapses to nothing on a tile that's already full.
+      className="mb-4 mt-3 grid gap-1"
+      // auto-fill keeps every pip the same width and wraps to as many rows as
+      // the tile needs — a fixed column count would squeeze 50 into a hairline.
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(8px, 1fr))' }}
+      role="img"
+      aria-label={label}
+    >
+      {Array.from({ length: total }, (_, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          className={`h-2.5 rounded-[3px] ${i < secured ? 'bg-city-crimson' : 'bg-city-ink/15'}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+// The sheet labels a row for the whole set ("Lamp Post Banners") but the
+// funding bar is about one of them, so the plural is trimmed for that line.
+// Deliberately crude — it only ever runs on a fallback, and a sheet `unit`
+// overrides it outright for anything this would mangle.
+const singular = (s) => (/[^s]s$/.test(s) ? s.slice(0, -1) : s)
+
+// A row the sheet gives unit counts for: pips for how many are secured, then a
+// bar for the money collected toward the next single one.
+function UnitTile({ l }) {
+  const remaining = Math.max(0, l.numGoal - l.numRaised)
+  // `unit` names one item — "bus", "lamp post". It's optional: without it the
+  // row's own label stands in, so the bar still reads "For lamp post banner #2"
+  // rather than a bare "For #2".
+  const unit = l.unit || singular(l.label)
+  const nextUnit = `${unit} #${l.numRaised + 1}`
+  return (
+    <div className="flex h-full flex-col rounded-xl border-2 border-city-ink/10 bg-city-cream p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-manila-body text-sm font-bold uppercase tracking-wide">
+          {l.label}
+        </span>
+        <span className="whitespace-nowrap font-manila-body text-xs font-bold uppercase tracking-wide text-city-crimson">
+          {l.numRaised.toLocaleString('en-PH')} of {l.numGoal.toLocaleString('en-PH')} secured
+        </span>
+      </div>
+      {l.description && <p className="mt-1 text-xs text-city-ink/70">{l.description}</p>}
+
+      {/* The pips carry the count on their own — the header already says
+          "1 of 50 secured", so no caption repeats it underneath. */}
+      <UnitPips
+        secured={l.numRaised}
+        total={l.numGoal}
+        label={`${l.numRaised.toLocaleString('en-PH')} of ${l.numGoal.toLocaleString('en-PH')} ${l.label} secured`}
+      />
+
+      {/* Every unit is paid for, so there's no "next one" left to fund. */}
+      {remaining > 0 && (
+        <div className="mt-auto border-t-2 border-city-ink/10 pt-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="font-manila-body text-[11px] font-bold uppercase tracking-wide text-city-ink/70">
+              For {nextUnit}
+            </span>
+            <span className="font-manila-body text-xs font-semibold text-city-ink/60">
+              {pct(l.raised, l.goal)}%
+            </span>
+          </div>
+          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-city-ink/10">
+            <div
+              className="h-full rounded-full bg-city-sky"
+              style={{ width: `${pct(l.raised, l.goal)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-city-ink/60">
+            {peso(l.raised)} of {peso(l.goal)} per {unit}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// A row with a single lump-sum goal and no unit counts — the original shape.
+function TargetTile({ l }) {
+  return (
+    <div className="flex h-full flex-col rounded-xl border-2 border-city-ink/10 bg-city-cream p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-manila-body text-sm font-bold uppercase tracking-wide">
+          {l.label}
+        </span>
+        <span className="font-manila-body text-xs font-semibold text-city-ink/60">
+          {pct(l.raised, l.goal)}%
+        </span>
+      </div>
+      {l.description && <p className="mt-1 text-xs text-city-ink/70">{l.description}</p>}
+      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-city-ink/10">
+        <div
+          className="h-full rounded-full bg-city-sky"
+          style={{ width: `${pct(l.raised, l.goal)}%` }}
+        />
+      </div>
+      <p className="mt-2 text-xs text-city-ink/60">
+        {peso(l.raised)} / {peso(l.goal)}
+      </p>
     </div>
   )
 }
@@ -212,9 +338,11 @@ export default function Concert() {
     [projectRows],
   )
 
-  // Live fund ledger from the Sheet; overall raised/goal are summed from rows.
-  // `num_raised` / `num_goal` are optional — when a row has them, the card also
-  // shows how many of that item we've secured (e.g. 5 of 60 lamp posts).
+  // Live fund ledger from the Sheet. A row is "unitised" when it carries both
+  // counts and a per-unit price — for those, `goal` is the cost of ONE banner /
+  // bus and `raised` is only the money collected toward the next one, so the
+  // row's real total has to add back the units already paid for. Rows without
+  // the counts keep the plain lump-sum reading of raised/goal.
   const {
     rows: fundRows,
     loading: fundLoading,
@@ -223,22 +351,37 @@ export default function Concert() {
   } = useSheet(sheets.id, sheets.tabs.fund, fund.ledger)
   const ledger = fundRows
     .filter((r) => r.label)
-    .map((r) => ({
-      label: r.label,
-      raised: num(r.raised),
-      goal: num(r.goal),
-      numRaised: has(r.num_raised) ? num(r.num_raised) : null,
-      numGoal: has(r.num_goal) ? num(r.num_goal) : null,
-      status: String(r.status ?? '').trim().toLowerCase(),
-      description: String(r.description ?? '').trim(), // optional blurb under the label
-    }))
+    .map((r) => {
+      const raised = num(r.raised)
+      const goal = num(r.goal)
+      const numRaised = has(r.num_raised) ? num(r.num_raised) : null
+      const numGoal = has(r.num_goal) ? num(r.num_goal) : null
+      const unitised = numRaised != null && numGoal != null && numGoal > 0 && goal > 0
+      return {
+        label: r.label,
+        raised,
+        goal,
+        numRaised,
+        numGoal,
+        unitised,
+        unit: String(r.unit ?? '').trim(), // singular noun: "banner", "bus"
+        total: unitised ? numRaised * goal + raised : raised,
+        status: String(r.status ?? '').trim().toLowerCase(),
+        description: String(r.description ?? '').trim(), // optional blurb under the label
+      }
+    })
 
   // "complete" rows are already secured and move to their own list; everything
-  // else is still raising, so it drives the Fund Update card and its totals.
+  // else is still raising, so it drives the Fund Update card and its total.
   const secured = ledger.filter((l) => l.status === 'complete')
   const funding = ledger.filter((l) => l.status !== 'complete')
-  const raised = funding.reduce((s, r) => s + r.raised, 0)
-  const goal = funding.reduce((s, r) => s + r.goal, 0)
+  const raised = funding.reduce((s, r) => s + r.total, 0)
+
+  // A row without a goal has nothing to fill, so a bar would sit permanently
+  // empty at "0%" beside rows that are genuinely progressing. Those rows are
+  // still real money, so they're listed as plain amounts instead.
+  const tiles = funding.filter((l) => l.unitised || l.goal > 0)
+  const untargeted = funding.filter((l) => !l.unitised && l.goal <= 0)
 
   return (
     <div className="bg-city-cream font-manila-body text-city-ink">
@@ -380,53 +523,55 @@ export default function Concert() {
               Fund update
             </h3>
 
-            <div className="flex flex-wrap items-end justify-between gap-2">
+            {/* No bar and no overall goal here — the targets that matter are
+                per project, and each tile below carries its own. */}
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
               <p className="font-manila text-4xl uppercase leading-none text-city-crimson sm:text-5xl">
                 {peso(raised)}
               </p>
               <p className="font-manila-body text-sm font-semibold uppercase tracking-wide text-city-ink/60">
-                raised of {peso(goal)} goal
+                total raised
               </p>
             </div>
-            <div className="mt-4 h-4 overflow-hidden rounded-full bg-city-ink/10">
-              <div
-                className="h-full rounded-full bg-city-crimson"
-                style={{ width: `${pct(raised, goal)}%` }}
-              />
-            </div>
 
-            <div className="mt-8 grid gap-6 sm:grid-cols-3">
-              {funding.map((l) => (
-                <div key={l.label}>
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-manila-body text-sm font-bold uppercase tracking-wide">
-                      {l.label}
-                    </span>
-                    <span className="font-manila-body text-xs font-semibold text-city-ink/60">
-                      {pct(l.raised, l.goal)}%
-                    </span>
-                  </div>
-                  {l.description && (
-                    <p className="mt-1 text-xs text-city-ink/70">{l.description}</p>
-                  )}
-                  <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-city-ink/10">
-                    <div
-                      className="h-full rounded-full bg-city-sky"
-                      style={{ width: `${pct(l.raised, l.goal)}%` }}
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-city-ink/60">
-                    {peso(l.raised)} / {peso(l.goal)}
-                  </p>
-                  {l.numRaised != null && l.numGoal != null && (
-                    <p className="mt-2 inline-flex w-fit rounded-full bg-city-yellow/30 px-3 py-1 font-manila-body text-xs font-bold uppercase tracking-wide text-city-ink">
-                      {l.numRaised.toLocaleString('en-PH')} of{' '}
-                      {l.numGoal.toLocaleString('en-PH')} {l.label} secured
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            {tiles.length > 0 && (
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Each target is its own tile so uneven content — a blurb here,
+                    two rows of pips there — can't drag the neighbouring
+                    column's bar out of line. */}
+                {tiles.map((l) =>
+                  l.unitised ? <UnitTile key={l.label} l={l} /> : <TargetTile key={l.label} l={l} />,
+                )}
+              </div>
+            )}
+
+            {untargeted.length > 0 && (
+              <div className="mt-6 rounded-xl border-2 border-city-ink/10">
+                <p className="border-b-2 border-city-ink/10 px-4 py-3 font-manila-body text-xs font-bold uppercase tracking-[0.2em] text-city-ink/60">
+                  Also raised
+                </p>
+                <ul className="divide-y-2 divide-city-ink/5">
+                  {untargeted.map((l) => (
+                    <li
+                      key={l.label}
+                      className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <span className="font-manila-body text-sm font-bold uppercase tracking-wide">
+                          {l.label}
+                        </span>
+                        {l.description && (
+                          <p className="mt-1 text-xs text-city-ink/70">{l.description}</p>
+                        )}
+                      </div>
+                      <span className="font-manila-body text-sm font-semibold text-city-ink/70">
+                        {peso(l.raised)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -468,7 +613,7 @@ export default function Concert() {
                       {l.numRaised != null && l.numGoal != null && (
                         <p className="mt-3 inline-flex w-fit rounded-full bg-city-yellow/30 px-3 py-1 font-manila-body text-xs font-bold uppercase tracking-wide text-city-ink">
                           {l.numRaised.toLocaleString('en-PH')} of{' '}
-                          {l.numGoal.toLocaleString('en-PH')} {l.label} secured
+                          {l.numGoal.toLocaleString('en-PH')} secured
                         </p>
                       )}
                     </div>
