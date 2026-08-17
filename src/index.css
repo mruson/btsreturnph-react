@@ -56,6 +56,11 @@
   .skeleton-city {
     @apply bg-city-ink/[0.08];
   }
+  /* SEVEN WITH YOU sits on a near-black starfield, where BOTH dark tints vanish
+     — this one goes the other way. */
+  .skeleton-dark {
+    @apply bg-white/10;
+  }
   @keyframes skeleton-sweep {
     from {
       background-position: 150% 0;

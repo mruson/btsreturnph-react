@@ -19,10 +19,14 @@
 // Only deploy previews and branch deploys advertise their own URL, so a preview
 // unfurls as itself instead of claiming to be production.
 //
+// The APEX, not www. Netlify serves the site from btsreturnph.com and 301s
+// www → apex, so naming www here pointed every canonical tag, og:url and
+// sitemap entry at a URL that redirects. Search engines follow it, but a
+// canonical should name the address that actually answers 200.
+const CANONICAL = 'https://btsreturnph.com'
+
 // The `typeof` guard matters — this file is imported by the browser bundle too,
 // where `process` doesn't exist. Vite compiles the check away to a constant.
-const CANONICAL = 'https://www.btsreturnph.com'
-
 const env = typeof process !== 'undefined' ? process.env || {} : {}
 const previewUrl =
   env.CONTEXT && env.CONTEXT !== 'production'
@@ -119,6 +123,57 @@ export const routeSeo = {
       'Merch in support of the comeback initiative. Every purchase helps fund the projects.',
     // Placeholder page — keep it out of the sitemap and out of search results
     // until real products are wired up.
+    noindex: true,
+  },
+  '/raffle': {
+    title: 'SEVEN WITH YOU — BTS RE:TURN PH',
+    // Names the series, not the current giveaway. Raffles are created in the
+    // admin dashboard without a deploy, but share cards are baked into static
+    // HTML at build time — so this text can't know whose birthday is running.
+    // Naming the series keeps it accurate all year.
+    description:
+      'SEVEN WITH YOU — a series of ARMY giveaways for each BTS member’s birthday. Check the mechanics, watch the countdown, and enter before the raffle closes.',
+    // TODO: the concert card is a stand-in. A dedicated SEVEN WITH YOU share
+    // image would serve this page better — see scripts/make-og-images.mjs.
+    image: ogImages.concert,
+  },
+  // --- SEVEN WITH YOU: one prerendered share card per member -----------------
+  // These exist so a link to a specific giveaway unfurls with that member's name
+  // on Facebook, X and Threads. Social crawlers don't run JavaScript, so a route
+  // that only exists at runtime would fall back to the SPA shell and show the
+  // homepage card instead — on pages whose whole purpose is being shared.
+  //
+  // The series is a known, fixed seven, so all of them can be registered up
+  // front. The slug here must match the raffle's `slug` in the admin dashboard.
+  // A raffle whose slug ISN'T listed still works — it just unfurls with the
+  // generic /raffle card, which is a fair fallback rather than a break.
+  ...Object.fromEntries(
+    [
+      ['jin', 'Jin', 'December 4'],
+      ['yoongi', 'SUGA', 'March 9'],
+      ['jhope', 'j-hope', 'February 18'],
+      ['rm', 'RM', 'September 12'],
+      ['jimin', 'Jimin', 'October 13'],
+      ['v', 'V', 'December 30'],
+      ['jungkook', 'Jung Kook', 'September 1'],
+    ].map(([slug, name, birthday]) => [
+      `/raffle/${slug}`,
+      {
+        title: `${name}'s Birthday Raffle — SEVEN WITH YOU`,
+        description:
+          `Celebrate ${name}'s birthday (${birthday}) with SEVEN WITH YOU — an ARMY ` +
+          `giveaway from BTS RE:TURN PH. Check the mechanics, watch the countdown, ` +
+          `and enter before it closes.`,
+        image: ogImages.concert,
+      },
+    ]),
+  ),
+
+  '/admin/raffles': {
+    title: 'Raffle entries — Admin',
+    description: 'Internal dashboard.',
+    // Keep it out of Google and out of the sitemap. This is hygiene, not
+    // security — access is enforced by Supabase auth and row-level security.
     noindex: true,
   },
 }

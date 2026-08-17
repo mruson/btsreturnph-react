@@ -37,4 +37,12 @@ export const routes = [
   { path: '/fan-projects', Component: split(() => import('./pages/FanProjects')) },
   { path: '/partners', Component: split(() => import('./pages/Partners')) },
   { path: '/shop', Component: split(() => import('./pages/Shop')) },
+  // SEVEN WITH YOU. The index lists all seven; each giveaway has its own URL so
+  // a shared link keeps meaning after that raffle closes. Member slugs are
+  // pre-registered in data/seo.js so their share cards are prerendered.
+  { path: '/raffle', Component: split(() => import('./pages/Raffles')) },
+  { path: '/raffle/:slug', Component: split(() => import('./pages/Raffle')) },
+  // Sign-in gated; see the header comment in the page. Kept out of `nav` and
+  // marked noindex in data/seo.js — neither of which is what protects it.
+  { path: '/admin/raffles', Component: split(() => import('./pages/AdminRaffles')) },
 ]

@@ -32,6 +32,10 @@ export const sheets = {
     events: 'Events', // columns: date | title | desc | link (sign-up form URL)
     team: 'Team', // columns: dept | fanbase | logo | link | active — see data/team.js
     mediaPartners: 'media_partners', // columns: partner | logo | link | active
+    // NOTE: raffles are NOT here. They moved to the Supabase `raffles` table so
+    // entries could reference them by id, and are edited in the admin dashboard
+    // at /admin/raffles. The old "Raffles" tab in this sheet is dead — safe to
+    // delete once you've recreated its raffles there.
   },
 }
 
@@ -57,6 +61,7 @@ export const nav = [
       // from the BTS in Manila page. The /fan-projects route still works.
       { label: 'BANGTANdahan', to: '/bangtandahan' },
       { label: 'Brand Partners', to: '/partners' },
+      { label: 'Seven With You', to: '/raffle' },
     ],
   },
 ]

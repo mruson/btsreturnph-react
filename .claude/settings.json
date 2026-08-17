@@ -42,7 +42,17 @@
       "Bash(git mv *)",
       "Bash(grep -o '<script>.\\\\{0,200\\\\}' /private/tmp/claude-501/-Users-majchaty-Desktop-btsreturnph-react/8e8a448d-b08c-4ee9-b0d2-2da059ad9c24/scratchpad/dist-slow/index.html)",
       "WebSearch",
-      "Bash(git diff *)"
+      "Bash(git diff *)",
+      "Bash(dig +short CNAME www.btsreturnph.com @ns73.domaincontrol.com)",
+      "Bash(dig +short www.btsreturnph.com @8.8.8.8)",
+      "Bash(dig +short A btsreturnph.com @8.8.8.8)",
+      "Bash(dig +short shop.btsreturnph.com @8.8.8.8)",
+      "Bash(curl -s -o /dev/null -w \"code=%{http_code} redirect=%{redirect_url}\\\\n\" --max-time 15 http://btsreturnph.com/)",
+      "Bash(curl -s -o /dev/null -w \"code=%{http_code}\\\\n\" --max-time 15 https://btsreturnph.com/)",
+      "Bash(openssl s_client -connect btsreturnph.com:443 -servername btsreturnph.com)",
+      "Bash(openssl x509 *)",
+      "Bash(curl -s https://6a7024160862f5377088f849--celadon-pavlova-537268.netlify.app/raffle)",
+      "Bash(netlify api *)"
     ],
     "additionalDirectories": [
       "/Users/majchaty/Desktop/btsreturnph-react/src/pages"
