@@ -105,6 +105,12 @@ export const routeSeo = {
       'Surprise projects we pull off together at PH Stadium. Know your cue, bring your materials, and let’s make all three nights unforgettable.',
     image: ogImages.concert,
   },
+  '/leaderboard': {
+    title: 'Live Leaderboard — BTS in the City: Manila',
+    description:
+      'Top donors and the running total for our live fundraiser. Every peso goes to the fan projects for BTS in the City: Manila to Bulacan.',
+    image: ogImages.concert,
+  },
   '/bangtandahan': {
     title: 'BANGTANdahan — BTS in the City: Manila',
     description:
@@ -125,57 +131,63 @@ export const routeSeo = {
     // until real products are wired up.
     noindex: true,
   },
-  '/raffle': {
-    title: 'SEVEN WITH YOU — BTS RE:TURN PH',
-    // Names the series, not the current giveaway. Raffles are created in the
-    // admin dashboard without a deploy, but share cards are baked into static
-    // HTML at build time — so this text can't know whose birthday is running.
-    // Naming the series keeps it accurate all year.
-    description:
-      'SEVEN WITH YOU — a series of ARMY giveaways for each BTS member’s birthday. Check the mechanics, watch the countdown, and enter before the raffle closes.',
-    // TODO: the concert card is a stand-in. A dedicated SEVEN WITH YOU share
-    // image would serve this page better — see scripts/make-og-images.mjs.
-    image: ogImages.concert,
-  },
-  // --- SEVEN WITH YOU: one prerendered share card per member -----------------
-  // These exist so a link to a specific giveaway unfurls with that member's name
-  // on Facebook, X and Threads. Social crawlers don't run JavaScript, so a route
-  // that only exists at runtime would fall back to the SPA shell and show the
-  // homepage card instead — on pages whose whole purpose is being shared.
+  // TEMPORARILY DISABLED: the raffle (SEVEN WITH YOU) is shelved. While these are
+  // commented out nothing is prerendered for /raffle, /raffle/<member> or
+  // /admin/raffles, and none of them reach sitemap.xml. To bring the raffle
+  // back, restore this block together with the routes in src/routes.jsx and
+  // the nav entry in src/data/site.js.
   //
-  // The series is a known, fixed seven, so all of them can be registered up
-  // front. The slug here must match the raffle's `slug` in the admin dashboard.
-  // A raffle whose slug ISN'T listed still works — it just unfurls with the
-  // generic /raffle card, which is a fair fallback rather than a break.
-  ...Object.fromEntries(
-    [
-      ['jin', 'Jin', 'December 4'],
-      ['yoongi', 'SUGA', 'March 9'],
-      ['jhope', 'j-hope', 'February 18'],
-      ['rm', 'RM', 'September 12'],
-      ['jimin', 'Jimin', 'October 13'],
-      ['v', 'V', 'December 30'],
-      ['jungkook', 'Jung Kook', 'September 1'],
-    ].map(([slug, name, birthday]) => [
-      `/raffle/${slug}`,
-      {
-        title: `${name}'s Birthday Raffle — SEVEN WITH YOU`,
-        description:
-          `Celebrate ${name}'s birthday (${birthday}) with SEVEN WITH YOU — an ARMY ` +
-          `giveaway from BTS RE:TURN PH. Check the mechanics, watch the countdown, ` +
-          `and enter before it closes.`,
-        image: ogImages.concert,
-      },
-    ]),
-  ),
-
-  '/admin/raffles': {
-    title: 'Raffle entries — Admin',
-    description: 'Internal dashboard.',
-    // Keep it out of Google and out of the sitemap. This is hygiene, not
-    // security — access is enforced by Supabase auth and row-level security.
-    noindex: true,
-  },
+  // '/raffle': {
+  //   title: 'SEVEN WITH YOU — BTS RE:TURN PH',
+  //   // Names the series, not the current giveaway. Raffles are created in the
+  //   // admin dashboard without a deploy, but share cards are baked into static
+  //   // HTML at build time — so this text can't know whose birthday is running.
+  //   // Naming the series keeps it accurate all year.
+  //   description:
+  //     'SEVEN WITH YOU — a series of ARMY giveaways for each BTS member’s birthday. Check the mechanics, watch the countdown, and enter before the raffle closes.',
+  //   // TODO: the concert card is a stand-in. A dedicated SEVEN WITH YOU share
+  //   // image would serve this page better — see scripts/make-og-images.mjs.
+  //   image: ogImages.concert,
+  // },
+  // // --- SEVEN WITH YOU: one prerendered share card per member -----------------
+  // // These exist so a link to a specific giveaway unfurls with that member's name
+  // // on Facebook, X and Threads. Social crawlers don't run JavaScript, so a route
+  // // that only exists at runtime would fall back to the SPA shell and show the
+  // // homepage card instead — on pages whose whole purpose is being shared.
+  // //
+  // // The series is a known, fixed seven, so all of them can be registered up
+  // // front. The slug here must match the raffle's `slug` in the admin dashboard.
+  // // A raffle whose slug ISN'T listed still works — it just unfurls with the
+  // // generic /raffle card, which is a fair fallback rather than a break.
+  // ...Object.fromEntries(
+  //   [
+  //     ['jin', 'Jin', 'December 4'],
+  //     ['yoongi', 'SUGA', 'March 9'],
+  //     ['jhope', 'j-hope', 'February 18'],
+  //     ['rm', 'RM', 'September 12'],
+  //     ['jimin', 'Jimin', 'October 13'],
+  //     ['v', 'V', 'December 30'],
+  //     ['jungkook', 'Jung Kook', 'September 1'],
+  //   ].map(([slug, name, birthday]) => [
+  //     `/raffle/${slug}`,
+  //     {
+  //       title: `${name}'s Birthday Raffle — SEVEN WITH YOU`,
+  //       description:
+  //         `Celebrate ${name}'s birthday (${birthday}) with SEVEN WITH YOU — an ARMY ` +
+  //         `giveaway from BTS RE:TURN PH. Check the mechanics, watch the countdown, ` +
+  //         `and enter before it closes.`,
+  //       image: ogImages.concert,
+  //     },
+  //   ]),
+  // ),
+  //
+  // '/admin/raffles': {
+  //   title: 'Raffle entries — Admin',
+  //   description: 'Internal dashboard.',
+  //   // Keep it out of Google and out of the sitemap. This is hygiene, not
+  //   // security — access is enforced by Supabase auth and row-level security.
+  //   noindex: true,
+  // },
 }
 
 // Resolve a pathname to a complete SEO record (relative image path).

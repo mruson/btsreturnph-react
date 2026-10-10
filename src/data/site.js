@@ -32,6 +32,17 @@ export const sheets = {
     events: 'Events', // columns: date | title | desc | link (sign-up form URL)
     team: 'Team', // columns: dept | fanbase | logo | link | active — see data/team.js
     mediaPartners: 'media_partners', // columns: partner | logo | link | active
+    // Live fundraiser leaderboard (/leaderboard). One row per DONATION — the page
+    // adds up repeat donors by alias, so just append a row each time.
+    // columns: alias | amount | bank
+    leaderboard: 'Live Leaderboard',
+    // One row of settings for that page. columns: show | title | goal
+    //   show  — checkbox. Ticked = the live is on: the "Live Leaderboard" button
+    //           appears on /concert. Unticked = button hidden, and the page
+    //           itself stays up as the final results.
+    //   title — name of the current live, shown above the progress bar
+    //   goal  — peso target the progress bar fills toward
+    liveSettings: 'Live Settings',
     // NOTE: raffles are NOT here. They moved to the Supabase `raffles` table so
     // entries could reference them by id, and are edited in the admin dashboard
     // at /admin/raffles. The old "Raffles" tab in this sheet is dead — safe to
@@ -61,7 +72,8 @@ export const nav = [
       // from the BTS in Manila page. The /fan-projects route still works.
       { label: 'BANGTANdahan', to: '/bangtandahan' },
       { label: 'Brand Partners', to: '/partners' },
-      { label: 'Seven With You', to: '/raffle' },
+      // TEMPORARILY DISABLED with the raffle — see the note in src/routes.jsx.
+      // { label: 'Seven With You', to: '/raffle' },
     ],
   },
 ]

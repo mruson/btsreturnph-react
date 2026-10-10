@@ -35,14 +35,21 @@ export const routes = [
   { path: '/bangtandahan', Component: split(() => import('./pages/Bangtandahan')) },
   { path: '/fanchant', Component: split(() => import('./pages/Fanchant')) },
   { path: '/fan-projects', Component: split(() => import('./pages/FanProjects')) },
+  { path: '/leaderboard', Component: split(() => import('./pages/Leaderboard')) },
   { path: '/partners', Component: split(() => import('./pages/Partners')) },
   { path: '/shop', Component: split(() => import('./pages/Shop')) },
-  // SEVEN WITH YOU. The index lists all seven; each giveaway has its own URL so
-  // a shared link keeps meaning after that raffle closes. Member slugs are
-  // pre-registered in data/seo.js so their share cards are prerendered.
-  { path: '/raffle', Component: split(() => import('./pages/Raffles')) },
-  { path: '/raffle/:slug', Component: split(() => import('./pages/Raffle')) },
-  // Sign-in gated; see the header comment in the page. Kept out of `nav` and
-  // marked noindex in data/seo.js — neither of which is what protects it.
-  { path: '/admin/raffles', Component: split(() => import('./pages/AdminRaffles')) },
+  // TEMPORARILY DISABLED: the raffle (SEVEN WITH YOU) is shelved. The pages are
+  // still in src/pages — with no route they're never bundled, and these URLs
+  // fall through to the 404 page. To bring the raffle back, restore these
+  // routes together with the nav entry in data/site.js and the share-card
+  // entries in data/seo.js.
+  //
+  // // SEVEN WITH YOU. The index lists all seven; each giveaway has its own URL so
+  // // a shared link keeps meaning after that raffle closes. Member slugs are
+  // // pre-registered in data/seo.js so their share cards are prerendered.
+  // { path: '/raffle', Component: split(() => import('./pages/Raffles')) },
+  // { path: '/raffle/:slug', Component: split(() => import('./pages/Raffle')) },
+  // // Sign-in gated; see the header comment in the page. Kept out of `nav` and
+  // // marked noindex in data/seo.js — neither of which is what protects it.
+  // { path: '/admin/raffles', Component: split(() => import('./pages/AdminRaffles')) },
 ]

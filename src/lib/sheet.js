@@ -161,3 +161,63 @@ export function useSheet(sheetId, sheetName, fallback = []) {
 
   return { rows: state.rows, loading: state.loading, error: state.error, reload }
 }
+
+// Polling variant of useSheet, for a tab that changes while people watch it —
+// the live fundraiser leaderboard. Differences from useSheet, all on purpose:
+//
+//   - it re-reads the tab every `intervalMs` instead of trusting the 5-minute
+//     cache, so the page moves on its own during a live;
+//   - an empty tab is a real answer (a new live starts from a cleared sheet),
+//     so there's no fallback to cling to;
+//   - a failed refresh keeps the rows already on screen rather than blanking a
+//     page that was working a moment ago.
+//
+// Polling stops while the browser tab is in the background and catches up the
+// moment it's looked at again, so a phone left open overnight isn't hitting
+// Google every 30 seconds for nobody.
+export function useLiveSheet(sheetId, sheetName, intervalMs = 30 * 1000) {
+  const key = keyFor(sheetId, sheetName)
+
+  const [state, setState] = useState(() => {
+    const hit = cache.get(key)
+    return hit
+      ? { rows: hit.rows, loading: false, error: null, updatedAt: hit.at }
+      : { rows: [], loading: Boolean(sheetId), error: null, updatedAt: null }
+  })
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    if (!sheetId) return
+
+    let alive = true
+    const load = () => {
+      if (document.visibilityState === 'hidden') return
+      fetchSheet(sheetId, sheetName).then(
+        (data) => {
+          const at = Date.now()
+          cache.set(key, { rows: data, at })
+          if (alive) setState({ rows: data, loading: false, error: null, updatedAt: at })
+        },
+        (err) => {
+          if (alive) setState((s) => ({ ...s, loading: false, error: err }))
+        },
+      )
+    }
+
+    load()
+    const timer = setInterval(load, intervalMs)
+    document.addEventListener('visibilitychange', load)
+    return () => {
+      alive = false
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', load)
+    }
+  }, [sheetId, sheetName, key, intervalMs, attempt])
+
+  const reload = useCallback(() => {
+    setState((s) => ({ ...s, loading: true, error: null }))
+    setAttempt((n) => n + 1)
+  }, [])
+
+  return { ...state, reload }
+}

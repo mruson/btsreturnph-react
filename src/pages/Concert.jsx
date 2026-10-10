@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { CityPageHero, CityImagePlaceholder, Skeleton, LoadError } from '../components/UI'
 import { useSheet, driveImage, isActive, num } from '../lib/sheet'
+import { liveSettings } from '../lib/live'
 import { sheets } from '../data/site'
 
 // ---------------------------------------------------------------------------
@@ -377,6 +378,11 @@ export default function Concert() {
   const funding = ledger.filter((l) => l.status !== 'complete')
   const raised = funding.reduce((s, r) => s + r.total, 0)
 
+  // The live fundraiser switch ("Live Settings" tab). While `show` is ticked the
+  // Fund update card grows a button to /leaderboard; unticked, it's gone.
+  const { rows: liveRows } = useSheet(sheets.id, sheets.tabs.liveSettings, [])
+  const live = useMemo(() => liveSettings(liveRows), [liveRows])
+
   // A row without a goal has nothing to fill, so a bar would sit permanently
   // empty at "0%" beside rows that are genuinely progressing. Those rows are
   // still real money, so they're listed as plain amounts instead.
@@ -590,6 +596,15 @@ export default function Concert() {
               >
                 Fund Tracker
               </a>
+              {live.show && (
+                <Link to="/leaderboard" className="city-btn-outline gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 animate-pulse rounded-full bg-city-crimson motion-reduce:animate-none"
+                  />
+                  Live Leaderboard
+                </Link>
+              )}
             </div>
 
             {/* Projects marked "complete" in the sheet — secured, so no bar needed. */}
