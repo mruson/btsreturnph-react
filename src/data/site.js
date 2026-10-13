@@ -43,6 +43,16 @@ export const sheets = {
     //   title — name of the current live, shown above the progress bar
     //   goal  — peso target the progress bar fills toward
     liveSettings: 'Live Settings',
+    // SUGA lighted headbands, lit up on /seat-view when its "SUGA headbands"
+    // switch is on. columns: section | availed headbands
+    //   section — where they are, as specific as you know:
+    //               Section A … Section D   a floor zone
+    //               Bleachers 1, Bleachers 2  a whole tier, scattered at random
+    //                                         across all its sections
+    //               116, Section 232…        one bleacher section
+    //   availed headbands — how many (any column with "headband" in its name)
+    // The switch only appears once this tab has at least one count in it.
+    headbands: 'SUGA Project',
     // NOTE: raffles are NOT here. They moved to the Supabase `raffles` table so
     // entries could reference them by id, and are edited in the admin dashboard
     // at /admin/raffles. The old "Raffles" tab in this sheet is dead — safe to
@@ -68,6 +78,7 @@ export const nav = [
       { label: 'BTS in Manila', to: '/concert' },
       { label: 'Communities', to: '/communities' },
       { label: 'Fanchant Guide', to: '/fanchant' },
+      { label: 'Seat View', to: '/seat-view' },
       // Fan Projects (Team Loob) is intentionally not in the nav — it's reached
       // from the BTS in Manila page. The /fan-projects route still works.
       { label: 'BANGTANdahan', to: '/bangtandahan' },

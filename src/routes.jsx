@@ -34,6 +34,7 @@ export const routes = [
   { path: '/communities', Component: split(() => import('./pages/Communities')) },
   { path: '/bangtandahan', Component: split(() => import('./pages/Bangtandahan')) },
   { path: '/fanchant', Component: split(() => import('./pages/Fanchant')) },
+  { path: '/seat-view', Component: split(() => import('./pages/SeatView')) },
   { path: '/fan-projects', Component: split(() => import('./pages/FanProjects')) },
   { path: '/leaderboard', Component: split(() => import('./pages/Leaderboard')) },
   { path: '/partners', Component: split(() => import('./pages/Partners')) },

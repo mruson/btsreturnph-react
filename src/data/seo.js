@@ -99,6 +99,12 @@ export const routeSeo = {
       'Let’s make PH Stadium a big karaoke session with BTS. Pick a song from the ARIRANG setlist, hit play, and the lyrics and fanchants follow along.',
     image: ogImages.concert,
   },
+  '/seat-view': {
+    title: 'Seat View — BTS in the City: Manila',
+    description:
+      'See the stage from your section at PH Stadium. Pick your seat for BTS WORLD TOUR ARIRANG in Bulacan and look around in 3D — a fan-made estimate.',
+    image: ogImages.concert,
+  },
   '/fan-projects': {
     title: 'Team Loob Fan Projects — BTS in the City: Manila',
     description:
