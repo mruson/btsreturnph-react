@@ -52,7 +52,12 @@ export const sheets = {
     //               116, Section 232…        one bleacher section
     //   availed headbands — how many (any column with "headband" in its name)
     // The switch only appears once this tab has at least one count in it.
-    headbands: 'SUGA Project',
+    //
+    // Read by gid (the number after #gid= when the tab is open), not by name,
+    // because its section column mixes numbers (116) and text (Section A) —
+    // see fetchSheetByGid in lib/sheet.js. If the tab is ever deleted and made
+    // again, its gid changes and this needs updating.
+    headbands: { gid: '785155400' }, // the "SUGA Project" tab
     // NOTE: raffles are NOT here. They moved to the Supabase `raffles` table so
     // entries could reference them by id, and are edited in the admin dashboard
     // at /admin/raffles. The old "Raffles" tab in this sheet is dead — safe to

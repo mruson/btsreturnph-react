@@ -33,10 +33,61 @@ export function driveImage(value) {
   return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : s
 }
 
+// Splits CSV text into rows of cells, honouring quoted cells (which may hold
+// commas, doubled quotes and line breaks).
+function parseCsv(text) {
+  const rows = []
+  let row = []
+  let cell = ''
+  let quoted = false
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') {
+        cell += '"'
+        i++
+      } else if (c === '"') quoted = false
+      else cell += c
+    } else if (c === '"') quoted = true
+    else if (c === ',') {
+      row.push(cell)
+      cell = ''
+    } else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++
+      row.push(cell)
+      rows.push(row)
+      row = []
+      cell = ''
+    } else cell += c
+  }
+  if (cell !== '' || row.length) rows.push([...row, cell])
+  return rows
+}
+
+// A tab named by its gid (the number after #gid= in the tab's URL) instead of
+// its name: read through the plain CSV export, which hands back exactly what's
+// in each cell.
+//
+// That matters for a column mixing numbers and text. The gviz endpoint guesses
+// one type per column from the majority of its cells and blanks out the rest —
+// so in a "section" column of 101, 102 … and "Section A", every "Section A"
+// silently came back empty.
+async function fetchSheetByGid(sheetId, gid) {
+  const res = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`)
+  if (!res.ok) throw new Error(`Sheet export failed (${res.status})`)
+  const [header = [], ...rows] = parseCsv(await res.text())
+  const keys = header.map((h) => h.trim().toLowerCase())
+  return rows
+    .map((cells) => Object.fromEntries(keys.map((key, i) => [key, cells[i] ?? ''])))
+    .filter((obj) => Object.values(obj).some((v) => v !== ''))
+}
+
 // Fetch a Google Sheet tab as an array of row objects keyed by the header row.
 // Uses Google's gviz endpoint — no API key, no backend, no database.
 // The sheet must be shared as "Anyone with the link — Viewer" (or published).
+// `sheetName` may also be { gid } — see fetchSheetByGid for when that's needed.
 export async function fetchSheet(sheetId, sheetName) {
+  if (sheetName && typeof sheetName === 'object') return fetchSheetByGid(sheetId, sheetName.gid)
   const url =
     `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq` +
     `?tqx=out:json&headers=1&sheet=${encodeURIComponent(sheetName)}`
@@ -73,7 +124,8 @@ const inflight = new Map() // key -> Promise, so parallel mounts share one reque
 
 const CACHE_MS = 5 * 60 * 1000 // re-fetch at most once every 5 minutes
 
-const keyFor = (sheetId, sheetName) => `${sheetId}::${sheetName}`
+const keyFor = (sheetId, sheetName) =>
+  `${sheetId}::${typeof sheetName === 'object' ? `gid:${sheetName.gid}` : sheetName}`
 
 // Drop everything cached — used by the retry button, which should always go to
 // the network rather than replay a failure.

@@ -81,9 +81,11 @@ const TAP_SLOP = 6
 const SELECTED = new THREE.Color('#FBC01E')
 const HOVER = new THREE.Color('#ffffff')
 
+// `glow` is how brightly the rings on the stage floor light up; `crowd` dims
+// the audience's clothes, which are drawn unlit, to suit the light.
 const LOOKS = {
-  day: { sky: '#cdd6ee', ambient: 1.5, sun: 1.4, glow: 0 },
-  night: { sky: '#0b0818', ambient: 0.7, sun: 0.35, glow: 0.75 },
+  day: { sky: '#cdd6ee', ambient: 1.5, sun: 1.4, glow: 0.3, crowd: 1 },
+  night: { sky: '#0b0818', ambient: 0.7, sun: 0.35, glow: 0.95, crowd: 0.5 },
 }
 
 // How finely each section is cut along the curve.
@@ -179,7 +181,8 @@ function buildFlat(points, y) {
 function buildLightsticks() {
   const positions = []
   const colors = []
-  const palette = ['#ffffff', '#ffd9f0', '#e7d4ff', '#c9a0f5'].map((c) => new THREE.Color(c))
+  // Mostly purple, as an ARIRANG crowd's lightsticks are, with some white.
+  const palette = ['#b98cff', '#9b6bff', '#a77dff', '#c9a0f5', '#e7d4ff', '#ffffff'].map((c) => new THREE.Color(c))
   const add = (x, y, z) => {
     const c = palette[Math.floor(Math.random() * palette.length)]
     positions.push(x, y, z)
@@ -216,7 +219,10 @@ function buildLightsticks() {
 }
 
 // How many poses the crowd picture holds, side by side.
-const POSES = 4
+// Four arm positions (down, right up, left up, both up), each drawn twice: with
+// short hair and with long. POSES is how many pictures that makes.
+const ARM_POSES = 4
+const POSES = ARM_POSES * 2
 // The picture leaves headroom above the figure for raised arms: a person's
 // head tops out this far up it.
 const POSE_HEADROOM = 0.84
@@ -224,8 +230,10 @@ const PERSON_HEIGHT = 1.6
 // How far a seated person's head is below where it would be standing.
 const SEATED_DROP = 0.4
 
-// One picture with every pose in it: a person seen from behind, as a solid
-// white silhouette (tinted per person later). Arms down, either arm up, both up.
+// One picture with every pose in it: a person seen from behind, painted in
+// shades of grey that the person's own colour is multiplied into later — so the
+// white shirt takes that colour fully, and the near-black hair stays dark
+// whatever the shirt is.
 function drawPoses() {
   const w = 128
   const h = 256
@@ -233,12 +241,16 @@ function drawPoses() {
   canvas.width = w * POSES
   canvas.height = h
   const ink = canvas.getContext('2d')
-  ink.fillStyle = ink.strokeStyle = '#ffffff'
   ink.lineCap = 'round'
   ink.lineJoin = 'round'
+  const SHIRT = '#ffffff'
+  const ARMS = '#d9d9d9'
+  const LEGS = '#4a4a4a'
+  const HAIR = '#1c1c1c'
 
   const top = h * (1 - POSE_HEADROOM)
-  const limb = (width, ...points) => {
+  const limb = (colour, width, ...points) => {
+    ink.strokeStyle = colour
     ink.lineWidth = width
     ink.beginPath()
     points.forEach(([x, y], i) => (i ? ink.lineTo(x, y) : ink.moveTo(x, y)))
@@ -246,13 +258,14 @@ function drawPoses() {
   }
 
   for (let pose = 0; pose < POSES; pose++) {
+    const arms = pose % ARM_POSES
+    const longHair = pose >= ARM_POSES
     ink.save()
     ink.translate(pose * w, 0)
-    // Head.
-    ink.beginPath()
-    ink.arc(64, top + 16, 14, 0, Math.PI * 2)
-    ink.fill()
-    // Shoulders down to hips.
+    // Legs, then the body over them.
+    limb(LEGS, 19, [53, top + 114], [51, h - 10])
+    limb(LEGS, 19, [75, top + 114], [77, h - 10])
+    ink.fillStyle = SHIRT
     ink.beginPath()
     ink.moveTo(38, top + 44)
     ink.quadraticCurveTo(64, top + 34, 90, top + 44)
@@ -260,17 +273,28 @@ function drawPoses() {
     ink.lineTo(44, top + 118)
     ink.closePath()
     ink.fill()
-    limb(13, [38, top + 44], [90, top + 44])
-    // Legs.
-    limb(19, [53, top + 114], [51, h - 10])
-    limb(19, [75, top + 114], [77, h - 10])
-    // Arms: pose 1 raises the right, 2 the left, 3 both.
-    const raised = [pose === 2 || pose === 3, pose === 1 || pose === 3]
+    limb(SHIRT, 13, [38, top + 44], [90, top + 44])
+    // Arms: 1 raises the right, 2 the left, 3 both.
+    const raised = [arms === 2 || arms === 3, arms === 1 || arms === 3]
     ;[-1, 1].forEach((side, i) => {
       const shoulder = [64 + side * 27, top + 46]
-      if (raised[i]) limb(12, shoulder, [64 + side * 40, top + 14], [64 + side * 34, top - 26])
-      else limb(12, shoulder, [64 + side * 33, top + 84], [64 + side * 30, top + 116])
+      if (raised[i]) limb(ARMS, 12, shoulder, [64 + side * 40, top + 14], [64 + side * 34, top - 26])
+      else limb(ARMS, 12, shoulder, [64 + side * 33, top + 84], [64 + side * 30, top + 116])
     })
+    // The back of the head is all hair; long hair falls down the back.
+    ink.fillStyle = HAIR
+    ink.beginPath()
+    ink.arc(64, top + 16, 14, 0, Math.PI * 2)
+    ink.fill()
+    if (longHair) {
+      ink.beginPath()
+      ink.moveTo(50, top + 16)
+      ink.lineTo(48, top + 70)
+      ink.quadraticCurveTo(64, top + 78, 80, top + 70)
+      ink.lineTo(78, top + 16)
+      ink.closePath()
+      ink.fill()
+    }
     ink.restore()
   }
   return canvas
@@ -334,6 +358,13 @@ function buildPeople(track, poses, tall, clearance, people) {
   return mesh
 }
 
+// What the crowd is wearing: purple most of all, then the usual black, white,
+// red and the rest. Listed more than once to come up more often.
+const SHIRTS = [
+  '#7b4fe0', '#7b4fe0', '#9b6bff', '#9b6bff', '#5a34b0', '#c9a0f5',
+  '#26242c', '#26242c', '#e8e6f0', '#c8323c', '#e06aa0', '#2b3a6b', '#8a8a96',
+].map((c) => new THREE.Color(c))
+
 // The audience: a cut-out person standing on every spot of the floor and
 // sitting in every seat of the stands, as one group so it can be switched on
 // and off together. Two triangles a person, so ~40,000 of them stay cheap.
@@ -347,10 +378,10 @@ function buildCrowd(track, poses) {
     z,
     // Heights from about 1.45 m to 1.7 m.
     scale: 0.9 + Math.random() * 0.17,
-    color: new THREE.Color().setHSL(0.72 + Math.random() * 0.12, 0.3, 0.05 + Math.random() * 0.09),
+    color: SHIRTS[Math.floor(Math.random() * SHIRTS.length)],
     // Half the crowd has arms down (pose 0); the other half is split evenly
     // between the left arm up, the right arm up, and both.
-    pose: Math.random() < 0.5 ? 0 : 1 + Math.floor(Math.random() * (POSES - 1)),
+    pose: (Math.random() < 0.5 ? 0 : 1 + Math.floor(Math.random() * (ARM_POSES - 1))) + (Math.random() < 0.5 ? ARM_POSES : 0),
   })
 
   // The floor: an even but not regimented spread — a grid, with every person nudged.
@@ -411,7 +442,8 @@ function buildMembers(track, poses) {
         z: Math.sin(a) * 3.5,
         scale: 1,
         color: new THREE.Color(color),
-        pose: i % POSES,
+        // Short hair only: the long-hair pictures are for the crowd.
+        pose: i % ARM_POSES,
       }
     }),
   )
@@ -489,30 +521,63 @@ function buildRoofs(scene, track) {
   }
 }
 
-// What a screen shows: the tour name in red on black. `shape` is the screen's
-// width over its height, so the lettering isn't stretched to fit.
+// What a screen shows: an abstract purple concert visual — a glow rising
+// from below, light rays and specks. Deliberately not the members or the
+// show's own footage. `shape` is the screen's width over its height, so the
+// picture isn't stretched to fit.
 function drawScreen(shape) {
   const canvas = document.createElement('canvas')
-  canvas.width = Math.round(256 * shape)
+  const w = Math.round(256 * shape)
+  canvas.width = w
   canvas.height = 256
   const ink = canvas.getContext('2d')
-  const wash = ink.createLinearGradient(0, 0, 0, 256)
-  wash.addColorStop(0, '#2a0611')
-  wash.addColorStop(0.5, '#12040a')
-  wash.addColorStop(1, '#2a0611')
-  ink.fillStyle = wash
-  ink.fillRect(0, 0, canvas.width, 256)
-  ink.fillStyle = '#EC1E50'
-  ink.font = '400 150px Anton, Impact, sans-serif'
-  ink.textAlign = 'center'
-  ink.textBaseline = 'middle'
-  ink.fillText('ARIRANG', canvas.width / 2, 136, canvas.width * 0.86)
+  const sky = ink.createLinearGradient(0, 0, 0, 256)
+  sky.addColorStop(0, '#120726')
+  sky.addColorStop(0.6, '#3a1a7a')
+  sky.addColorStop(1, '#8a5cff')
+  ink.fillStyle = sky
+  ink.fillRect(0, 0, w, 256)
+
+  // A bright glow along the bottom edge.
+  const glow = ink.createRadialGradient(w / 2, 300, 10, w / 2, 300, Math.max(w, 256) * 0.7)
+  glow.addColorStop(0, 'rgba(255, 220, 255, 0.9)')
+  glow.addColorStop(0.35, 'rgba(190, 140, 255, 0.45)')
+  glow.addColorStop(1, 'rgba(120, 80, 255, 0)')
+  ink.fillStyle = glow
+  ink.fillRect(0, 0, w, 256)
+
+  // Rays fanning up from that glow.
+  ink.globalCompositeOperation = 'lighter'
+  for (let i = 0; i < 9; i++) {
+    const spread = (i - 4) / 4
+    ink.fillStyle = `rgba(200, 170, 255, ${0.08 + 0.05 * (i % 2)})`
+    ink.beginPath()
+    ink.moveTo(w / 2 + spread * w * 0.05, 256)
+    ink.lineTo(w / 2 + spread * w * 0.7 - w * 0.03, 0)
+    ink.lineTo(w / 2 + spread * w * 0.7 + w * 0.03, 0)
+    ink.closePath()
+    ink.fill()
+  }
+
+  // Specks of light, the same on every screen of the same shape.
+  let seed = Math.round(shape * 1000)
+  const random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
+  for (let i = 0; i < 70 * shape; i++) {
+    ink.fillStyle = `rgba(255, 240, 255, ${0.25 + random() * 0.6})`
+    ink.beginPath()
+    ink.arc(random() * w, random() * 200, 0.8 + random() * 2.2, 0, Math.PI * 2)
+    ink.fill()
+  }
+  ink.globalCompositeOperation = 'source-over'
   return canvas
 }
 
 // The towers, screens and lighting grid over the centre stage (see RIG in
-// data/venue.js). Returns the meshes: they block taps, like the stage.
+// data/venue.js). Returns the meshes, which block taps like the stage, with
+// the screens' materials attached as `.screens`.
 function buildRig(scene, track) {
+  // The screens' pictures, so they can be dimmed while the headbands show.
+  const screens = []
   const meshes = []
   const steel = track(new THREE.MeshLambertMaterial({ color: '#23222c' }))
   const add = (geometry, material, x, y, z, turn = 0) => {
@@ -530,6 +595,7 @@ function buildRig(scene, track) {
     map.colorSpace = THREE.SRGBColorSpace
     // Unlit: a screen is its own light, day or night.
     const picture = track(new THREE.MeshBasicMaterial({ map }))
+    screens.push(picture)
     const faces = [steel, steel, steel, steel, picture, bothSides ? picture : steel]
     add(new THREE.BoxGeometry(width, height, 0.6), faces, x, y, z, turn)
   }
@@ -574,6 +640,7 @@ function buildRig(scene, track) {
     )
   })
 
+  meshes.screens = screens
   return meshes
 }
 
@@ -632,13 +699,13 @@ function buildShowLights(track, glowTexture) {
     })
   }
 
-  // A soft pink wash on the centre stage, under the screens.
+  // A soft purple wash on the centre stage, under the screens.
   const wash = new THREE.Mesh(
     track(new THREE.CircleGeometry(STAGE.radius * 1.5, 40)),
     track(
       new THREE.MeshBasicMaterial({
         map: glowTexture,
-        color: '#ff7ab8',
+        color: '#a57bff',
         transparent: true,
         opacity: 0.45,
         blending: THREE.AdditiveBlending,
@@ -655,17 +722,48 @@ function buildShowLights(track, glowTexture) {
 
 // Returns the stage deck material (so the night look can make it glow) and the
 // meshes, which block taps from reaching the stands behind them.
+// The top of the centre stage: a dark floor with rings of light, as the real
+// one is lit — far less glaring than a plain pale disc.
+function drawDeck() {
+  const size = 512
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ink = canvas.getContext('2d')
+  ink.fillStyle = '#1c1928'
+  ink.fillRect(0, 0, size, size)
+  const middle = size / 2
+  ink.strokeStyle = '#c9b0ff'
+  for (const [ring, width] of [[0.96, 6], [0.8, 3], [0.62, 4], [0.44, 3], [0.26, 5], [0.1, 3]]) {
+    ink.lineWidth = width
+    ink.beginPath()
+    ink.arc(middle, middle, middle * ring, 0, Math.PI * 2)
+    ink.stroke()
+  }
+  return canvas
+}
+
 function buildStage(scene, track) {
-  const deck = track(new THREE.MeshLambertMaterial({ color: '#f1ece0', emissive: '#ffffff', emissiveIntensity: 0 }))
+  const rings = track(new THREE.CanvasTexture(drawDeck()))
+  rings.colorSpace = THREE.SRGBColorSpace
+  // The rings glow by themselves; how brightly is set by the night look.
+  const deck = track(
+    new THREE.MeshLambertMaterial({ map: rings, emissive: '#ffffff', emissiveMap: rings, emissiveIntensity: 0.3 }),
+  )
+  const body = track(new THREE.MeshLambertMaterial({ color: '#2a2638' }))
+  const edge = track(new THREE.LineBasicMaterial({ color: '#b98cff' }))
   const meshes = []
-  const add = (geometry) => {
-    const mesh = new THREE.Mesh(track(geometry), deck)
+  const add = (geometry, material = body) => {
+    const mesh = new THREE.Mesh(track(geometry), material)
     scene.add(mesh)
     meshes.push(mesh)
+    // A thin light line round every edge, so the dark shapes still read.
+    mesh.add(new THREE.LineSegments(track(new THREE.EdgesGeometry(geometry)), edge))
     return mesh
   }
 
-  add(new THREE.CylinderGeometry(STAGE.radius, STAGE.radius, STAGE.height, 48)).position.y = STAGE.height / 2
+  // Side, top, bottom: only the top gets the rings.
+  add(new THREE.CylinderGeometry(STAGE.radius, STAGE.radius, STAGE.height, 48), [body, deck, body]).position.y =
+    STAGE.height / 2
 
   const runwayHeight = STAGE.height * 0.85
   for (const [x, z] of STAGE.arms) {
@@ -1013,14 +1111,29 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
     render()
   }
 
-  const setNight = (night) => {
+  // Every light in the show — lightsticks, beams, glowing stage rings and the
+  // screens — follows the night look, and all of it goes dark while the
+  // headbands are shown, so they're the only lights left in the stadium.
+  let night = startNight
+  let headbandsOn = false
+  const applyLights = () => {
+    const look = night ? LOOKS.night : LOOKS.day
+    const showing = !headbandsOn
+    lightsticks.visible = night && showing
+    showLights.visible = night && showing
+    stage.deck.emissiveIntensity = showing ? look.glow : 0
+    for (const screen of rig.screens) screen.color.setScalar(showing ? 1 : 0.08)
+    headbands.visible = headbandsOn
+  }
+
+  const setNight = (value) => {
+    night = value
     const look = night ? LOOKS.night : LOOKS.day
     scene.background.set(look.sky)
     ambient.intensity = look.ambient
     sun.intensity = look.sun
-    stage.deck.emissiveIntensity = look.glow
-    lightsticks.visible = night
-    showLights.visible = night
+    for (const people of crowd.children) people.material.color.setScalar(look.crowd)
+    applyLights()
     render()
   }
 
@@ -1060,10 +1173,9 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
     render()
   }
 
-  // With the headbands on, the ordinary lightsticks dim so the pink reads.
   const setHeadbandsShown = (shown) => {
-    headbands.visible = shown
-    sparkle.color.setScalar(shown ? 0.3 : 1)
+    headbandsOn = shown
+    applyLights()
     render()
   }
 
