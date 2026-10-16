@@ -208,6 +208,12 @@ what lets them check again or remove themselves). No email, phone or IP.
 end of `seatmates.sql`. Removal requests from people who've lost their device
 (and with it their "Remove me" button) are handled here.
 
+**Spam caps:** at most 3 people per seat per day, 2 seats per handle per day,
+20 new saves an hour per internet connection, and 150,000 entries in total. They're set in `seatmate_caps()` near the top of
+`seatmates.sql`; change a number and re-run the file. Re-running is safe and
+keeps existing entries. The per-connection cap stores only a scrambled form of
+the address, deleted after a day.
+
 **What it can't stop:** tickets aren't checked, so someone can claim a seat
 that isn't theirs, or claim many seats to collect the names and handles of
 people who joined. Each claim is a row with its own handle on it, so it's

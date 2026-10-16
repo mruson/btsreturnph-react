@@ -79,6 +79,40 @@ create policy "admins can remove seatmates"
   using (public.is_admin());
 
 -- ============================================================================
+-- 1b. SPAM CAPS
+-- ============================================================================
+-- Checked inside find_seatmates on every NEW save (renaming your own entry
+-- doesn't count), so they hold even for someone calling the API directly.
+-- Change the numbers here and re-run this file to adjust them.
+--
+--   per seat    at most 3 entries in one seat, per day
+--   per handle  one handle can hold at most 2 seats, per day
+--   per device  at most 20 new saves an hour from one internet connection.
+--               Generous on purpose: Filipino mobile carriers put many
+--               people behind one shared address.
+--   fuse        no new entries at all past 150,000, so a flood can't fill the
+--               free database (which the raffle shares)
+--
+-- For the per-device cap, only a SHA-256 hash of the connection's address is
+-- kept, and each one is deleted a day later. Raw addresses are never stored.
+
+create table if not exists public.seatmate_saves (
+  device_hash text not null,
+  saved_at    timestamptz not null default now()
+);
+create index if not exists seatmate_saves_by_device
+  on public.seatmate_saves (device_hash, saved_at);
+
+alter table public.seatmate_saves enable row level security;
+revoke all on public.seatmate_saves from anon, authenticated;
+
+create or replace function public.seatmate_caps()
+returns table (per_seat int, per_handle int, per_device_hour int, total int)
+language sql
+immutable
+as $$ select 3, 2, 20, 150000 $$;
+
+-- ============================================================================
 -- 2. THE FUNCTIONS THE PAGE CALLS
 -- ============================================================================
 
@@ -122,6 +156,9 @@ declare
   v_handle text := regexp_replace(trim(coalesce(p_handle, '')), '^@+', '');
   v_hash text := encode(digest(coalesce(p_key, ''), 'sha256'), 'hex');
   v_entry public.seatmates;
+  v_caps record;
+  v_address text;
+  v_device text;
 begin
   if v_tier not in (1, 2) or v_number not between 1 and 46
      or p_seat not between (v_number - 1) * 24 + 1 and v_number * 24 then
@@ -145,6 +182,36 @@ begin
     update public.seatmates set name = trim(p_name) where id = v_entry.id
     returning * into v_entry;
   else
+    -- A new save: the caps apply.
+    select * into v_caps from public.seatmate_caps();
+
+    if (select count(*) from public.seatmates) >= v_caps.total then
+      raise exception 'finder_full';
+    end if;
+    if (select count(*) from public.seatmates
+        where day = p_day and tier = v_tier and row_no = p_row and seat = p_seat) >= v_caps.per_seat then
+      raise exception 'seat_full';
+    end if;
+    if (select count(*) from public.seatmates
+        where day = p_day and platform = p_platform and lower(handle) = lower(v_handle)) >= v_caps.per_handle then
+      raise exception 'handle_limit';
+    end if;
+
+    -- The visitor's address, as Supabase passes it on: the first entry of
+    -- X-Forwarded-For. Without one (a direct database call) there's no
+    -- per-device cap to apply.
+    v_address := nullif(trim(split_part(
+      coalesce(current_setting('request.headers', true), '{}')::json ->> 'x-forwarded-for', ',', 1)), '');
+    if v_address is not null then
+      v_device := encode(digest('seatmates:' || v_address, 'sha256'), 'hex');
+      delete from public.seatmate_saves where saved_at < now() - interval '1 day';
+      if (select count(*) from public.seatmate_saves
+          where device_hash = v_device and saved_at > now() - interval '1 hour') >= v_caps.per_device_hour then
+        raise exception 'too_many_saves';
+      end if;
+      insert into public.seatmate_saves (device_hash) values (v_device);
+    end if;
+
     insert into public.seatmates (day, tier, row_no, seat, name, handle, platform, remove_key_hash)
     values (p_day, v_tier, p_row, p_seat, trim(p_name), v_handle, p_platform, v_hash)
     returning * into v_entry;
@@ -207,12 +274,16 @@ grant execute on function public.remove_seatmate(uuid, text) to anon, authentica
 --   from public.seatmates order by created_at desc;
 --
 --   delete from public.seatmates where lower(handle) = 'somehandle';
+--
+-- If the fuse is hit (the finder says it's full), check what filled it before
+-- raising the limit in seatmate_caps().
 
 -- ============================================================================
 -- 4. VERIFY
 -- ============================================================================
--- Expect false on both: the public can't read or write the table directly,
--- only through the functions above.
+-- Expect false on all three: the public can't read or write either table
+-- directly, only through the functions above.
 select
   has_table_privilege('anon', 'public.seatmates', 'select') as public_can_read,
-  has_table_privilege('anon', 'public.seatmates', 'insert') as public_can_write;
+  has_table_privilege('anon', 'public.seatmates', 'insert') as public_can_write,
+  has_table_privilege('anon', 'public.seatmate_saves', 'select') as public_can_read_saves;
