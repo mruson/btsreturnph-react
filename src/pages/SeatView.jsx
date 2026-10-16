@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useSheet, num } from '../lib/sheet'
 import { sheets } from '../data/site'
+import { fanProjectDays } from '../data/fanProjects'
 import {
   TIERS,
   FLOOR_ZONES,
@@ -23,7 +24,6 @@ import {
   FLOOR_TICKETS,
   zoneCenter,
   parseSectionRef,
-  sectionRefName,
   EVERYONE,
 } from '../data/venue'
 
@@ -47,8 +47,28 @@ const ZOOMS = [1, 2, 3, 5]
 
 // What the headband switch can show: nothing, the headbands availed so far
 // (from the sheet), or the goal — every attendee wearing one.
+// Which concert days have a fan project the 3D view can show. Days not listed
+// still get a tab, marked "soon", until their projects are announced.
+const VIEWABLE_PROJECTS = { 'day-1': ['headbands'] }
+
+// The site's logo, for the corner of saved pictures. Loaded once, on first save;
+// if it can't be loaded the picture goes out without it.
+let logoImage = null
+const loadLogo = () => {
+  if (!logoImage) {
+    logoImage = new Promise((resolve) => {
+      const image = new Image()
+      image.onload = () => resolve(image)
+      image.onerror = () => resolve(null)
+      image.src = '/logo.png'
+    })
+  }
+  return logoImage
+}
+
+// How a day with the headband project is shown: the headbands availed so far,
+// or the goal of everyone wearing one.
 const HEADBAND_VIEWS = [
-  ['off', 'Off'],
   ['current', 'Current'],
   ['all', 'Goal'],
 ]
@@ -359,6 +379,141 @@ function QueueInput({ zone, ticket, depth, onChange }) {
   )
 }
 
+// The section picker, styled like the rest of the panel rather than the
+// browser's own dropdown. The list opens in place, pushing the panel's
+// contents down instead of floating over them: the panel scrolls, and a list
+// floating inside it would be cut off at its edge on a phone.
+//
+// Keyboard: arrows move, Home/End jump, Enter or Space picks, Escape closes,
+// and typing a section number ("2", "23", "233") jumps to it.
+function SectionPicker({ groups, value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(value)
+  const rootRef = useRef(null)
+  const listRef = useRef(null)
+  const typed = useRef({ text: '', at: 0 })
+  const options = useMemo(() => groups.flatMap((g) => g.options), [groups])
+  const current = options.find((o) => o.id === value)
+
+  // Opening starts on the chosen section, scrolled into the middle of the list.
+  useEffect(() => {
+    if (!open) return undefined
+    setActive(value)
+    const close = (e) => {
+      if (!rootRef.current?.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [open, value])
+  useEffect(() => {
+    if (!open) return
+    listRef.current?.querySelector(`[data-id="${active}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [open, active])
+
+  const pick = (id) => {
+    onChange(id)
+    setOpen(false)
+  }
+
+  const onKeyDown = (e) => {
+    const at = options.findIndex((o) => o.id === active)
+    const move = (to) => {
+      e.preventDefault()
+      if (!open) setOpen(true)
+      setActive(options[Math.max(0, Math.min(options.length - 1, to))].id)
+    }
+    if (e.key === 'ArrowDown') return move(at + 1)
+    if (e.key === 'ArrowUp') return move(at - 1)
+    if (e.key === 'Home') return move(0)
+    if (e.key === 'End') return move(options.length - 1)
+    if (e.key === 'Escape' && open) {
+      e.preventDefault()
+      setOpen(false)
+      return undefined
+    }
+    if ((e.key === 'Enter' || e.key === ' ') && open) {
+      e.preventDefault()
+      pick(active)
+      return undefined
+    }
+    // Type-ahead: digits build up a section number, a letter picks a floor zone.
+    if (/^[0-9a-d]$/i.test(e.key)) {
+      const now = Date.now()
+      const text = (now - typed.current.at < 900 ? typed.current.text : '') + e.key.toUpperCase()
+      typed.current = { text, at: now }
+      const match = options.find((o) => o.id.startsWith(text) || o.id === `F${text}`)
+      if (match) move(options.indexOf(match))
+    }
+    return undefined
+  }
+
+  return (
+    <div ref={rootRef} className="mt-2">
+      <button
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls="section-list"
+        aria-activedescendant={open ? `section-${active}` : undefined}
+        onClick={() => setOpen(!open)}
+        onKeyDown={onKeyDown}
+        className={`flex w-full items-center justify-between rounded-lg border-2 bg-white px-3 py-2.5 text-left font-semibold transition ${
+          open ? 'border-city-crimson' : 'border-city-ink/15 hover:border-city-ink/40'
+        }`}
+      >
+        <span>{current?.name}</span>
+        <svg
+          viewBox="0 0 12 12"
+          className={`h-3 w-3 text-city-crimson transition ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
+          <path d="M2 4l4 4 4-4" />
+        </svg>
+      </button>
+      {open && (
+        <ul
+          ref={listRef}
+          id="section-list"
+          role="listbox"
+          aria-label="Section"
+          className="mt-1.5 max-h-64 overflow-y-auto rounded-lg border-2 border-city-ink/15 bg-white py-1 shadow-sm"
+        >
+          {groups.map((group) => (
+            <li key={group.label} role="presentation">
+              <p className="sticky top-0 bg-city-cream px-3 py-1.5 font-manila-body text-[11px] font-bold uppercase tracking-[0.2em] text-city-crimson">
+                {group.label}
+              </p>
+              <ul role="presentation">
+                {group.options.map((o) => (
+                  <li
+                    key={o.id}
+                    id={`section-${o.id}`}
+                    data-id={o.id}
+                    role="option"
+                    aria-selected={o.id === value}
+                    onPointerEnter={() => setActive(o.id)}
+                    onClick={() => pick(o.id)}
+                    className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-semibold ${
+                      o.id === active ? 'bg-city-crimson/10' : ''
+                    } ${o.id === value ? 'text-city-crimson' : ''}`}
+                  >
+                    {o.name}
+                    {o.id === value && <span aria-hidden="true">✓</span>}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export default function SeatView() {
   const [params, setParams] = useSearchParams()
   const id = findSection(params.get('s')) ? params.get('s') : DEFAULT_SECTION
@@ -367,6 +522,8 @@ export default function SeatView() {
   const [mode, setMode] = useState(() => (params.get('s') ? 'seat' : 'overview'))
   const [night, setNight] = useState(true)
   const [crowd, setCrowd] = useState(true)
+  // The ARMY Bombs the crowd holds. Only meaningful with the crowd shown.
+  const [bombs, setBombs] = useState(true)
 
   // The SUGA lighted headband fan project: how many headbands are where, live
   // from the sheet. A row can name one section, a floor zone, or a whole tier.
@@ -386,12 +543,38 @@ export default function SeatView() {
     return counts
   }, [headbandRows])
   const headbandTotal = Object.values(headbandCounts).reduce((sum, n) => sum + n, 0)
-  // 'off', 'current' or 'all' — see HEADBAND_VIEWS.
-  const [headbands, setHeadbands] = useState('off')
+  // The concert day whose fan projects are shown, kept in the link as ?d=2.
+  // Choosing a day IS switching its fan projects on: picking Day 1 lights the
+  // headbands straight away, and picking it again switches them back off. No
+  // day chosen means nothing extra in the view.
+  const day = fanProjectDays.find((d) => d.id === `day-${params.get('d')}`) ?? null
+  const dayProjects = (day && VIEWABLE_PROJECTS[day.id]) ?? []
+  const setDay = (next) => {
+    const query = new URLSearchParams(params)
+    if (!next || next.id === day?.id) query.delete('d')
+    else query.set('d', next.id.replace('day-', ''))
+    if (next && next.id !== day?.id) {
+      setHeadbands('current')
+      // The headbands read best on their own, so the ARMY Bombs go off when a
+      // headband day is picked (and come back with any other choice). The
+      // switch can still bring them back alongside.
+      setBombs(!VIEWABLE_PROJECTS[next.id]?.includes('headbands'))
+    } else setBombs(true)
+    setParams(query, { replace: true })
+  }
+
+  // 'current' or 'all' — see HEADBAND_VIEWS. Shown whenever the chosen day is
+  // the one with the headband project; picking that day starts on 'current'.
+  const [headbandChoice, setHeadbands] = useState('current')
+  const headbands = dayProjects.includes('headbands') ? headbandChoice : 'off'
   const shownHeadbands = headbands === 'all' ? EVERYONE : headbandCounts
   const [hovered, setHovered] = useState(null)
   const [zoom, setZoom] = useState(1)
   const [failed, setFailed] = useState(false)
+  // Fetched ahead of time, so the first save doesn't wait on it.
+  useEffect(() => {
+    loadLogo()
+  }, [])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   // The last picture made by "save this view", while it's being shown.
@@ -415,6 +598,7 @@ export default function SeatView() {
   const update = (next) => {
     const merged = { s: id, r: depth, p: across, ...next }
     const query = { s: merged.s, r: String(merged.r), p: String(merged.p) }
+    if (params.get('d')) query.d = params.get('d')
     // On the floor the link also says which line you're in. Unless a ticket type
     // was chosen outright, it's whichever line stands at that depth — so
     // dragging the slider or tapping the floor moves you between the two.
@@ -459,7 +643,7 @@ export default function SeatView() {
     return () => observer.disconnect()
   }, [wide, panelOpen])
   const covered = { right: wide && panelOpen ? PANEL_COVERS : 0, bottom: panelOpen ? sheetHeight : 0 }
-  latest.current = { seat, id, mode, zoom, night, crowd, covered, shownHeadbands, headbands }
+  latest.current = { seat, id, mode, zoom, night, crowd, bombs, covered, shownHeadbands, headbands }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -484,6 +668,7 @@ export default function SeatView() {
         scene.setCovered(now.covered.right, now.covered.bottom)
         scene.setZoom(now.zoom)
         scene.setSeat(now.seat, now.id)
+        scene.setBombs(now.bombs)
         scene.setHeadbands(now.shownHeadbands)
         scene.setHeadbandsShown(now.headbands !== 'off')
         observer = new ResizeObserver(() => scene.resize())
@@ -522,6 +707,9 @@ export default function SeatView() {
   useEffect(() => {
     sceneRef.current?.setCrowd(crowd)
   }, [crowd])
+  useEffect(() => {
+    sceneRef.current?.setBombs(bombs)
+  }, [bombs])
   useEffect(() => {
     sceneRef.current?.setHeadbands(shownHeadbands)
   }, [shownHeadbands])
@@ -569,6 +757,26 @@ export default function SeatView() {
       ink.fillStyle = colour
       ink.fillText(text, pad, y, width - pad * 2)
     }
+    // The site's mark in the top-left corner: logo, name and a crimson rule.
+    const logo = await loadLogo()
+    const mark = unit * 1.6
+    const markX = pad
+    const markY = pad * 0.8
+    if (logo) ink.drawImage(logo, markX, markY, mark, mark)
+    const nameX = logo ? markX + mark + unit * 0.35 : markX
+    ink.textBaseline = 'middle'
+    ink.font = `800 ${unit * 0.72}px Poppins, system-ui, sans-serif`
+    ink.fillStyle = '#ffffff'
+    ink.shadowColor = 'rgba(0, 0, 0, 0.6)'
+    ink.shadowBlur = unit * 0.3
+    ink.fillText('BTS RE:TURN PH', nameX, markY + mark * 0.38)
+    ink.font = `600 ${unit * 0.36}px Barlow, system-ui, sans-serif`
+    ink.fillStyle = '#FBC01E'
+    ink.fillText('SEAT VIEW · BTS IN THE CITY: MANILA TO BULACAN', nameX, markY + mark * 0.78)
+    ink.shadowBlur = 0
+    ink.fillStyle = '#EC1E50'
+    ink.fillRect(0, 0, width, Math.max(3, unit * 0.12))
+
     ink.textBaseline = 'alphabetic'
     line(section.name.toUpperCase(), unit * 1.5, '400', '#FBF4DA', height - unit * 3.9)
     line(
@@ -583,8 +791,8 @@ export default function SeatView() {
     if (headbands !== 'off') {
       line(
         headbands === 'all'
-          ? 'SUGA lighted headbands · the goal: everyone wearing one'
-          : `SUGA lighted headbands · ${headbandTotal.toLocaleString('en-PH')} availed so far`,
+          ? `SUGA lighted headbands · ${day.label} goal: everyone wearing one`
+          : `SUGA lighted headbands · ${headbandTotal.toLocaleString('en-PH')} ${day.label} attendees availed so far`,
         unit * 0.5,
         '700',
         '#ff7ab8',
@@ -643,12 +851,6 @@ export default function SeatView() {
   }
 
   const floor = section.kind === 'floor'
-  // The most specific headband count that covers the chosen seat: its own
-  // section's if the sheet has one, otherwise its whole tier's.
-  const headbandsHere =
-    !floor && headbandCounts[id] === undefined && headbandCounts[section.tier.id] !== undefined
-      ? { count: headbandCounts[section.tier.id], name: sectionRefName(section.tier.id) }
-      : { count: headbandCounts[id] ?? 0, name: section.name }
   // The URL keeps depth as a percentage (the floor has no rows), so a row
   // number is converted on the way in and out. Both directions round to the
   // nearest row, so picking row 7 always reads back as row 7.
@@ -696,7 +898,7 @@ export default function SeatView() {
         )}
 
         <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-2">
-          <div className="pointer-events-auto flex gap-1.5">
+          <div className="pointer-events-auto flex flex-wrap gap-1.5">
             <div className="flex overflow-hidden rounded-full bg-city-ink/75">
               {[
                 ['overview', 'Stadium'],
@@ -715,16 +917,22 @@ export default function SeatView() {
             </div>
             {/* On/off switches, lit while on. One word each so the whole row
                 fits across a phone. */}
+            {/* ARMY Bombs can only be switched while the crowd holding them is
+                shown; with the crowd off it's dimmed and reads as off. */}
             {[
-              ['Night', night, setNight],
-              ['Crowd', crowd, setCrowd],
-            ].map(([label, on, set]) => (
+              ['Night', night, setNight, true],
+              ['Crowd', crowd, setCrowd, true],
+              ['ARMY Bombs', bombs && crowd, setBombs, crowd],
+            ].map(([label, on, set, enabled]) => (
               <button
                 key={label}
                 type="button"
                 onClick={() => set(!on)}
+                disabled={!enabled}
                 aria-pressed={on}
-                className={`${chip} rounded-full ${on ? 'bg-city-cream text-city-ink' : overlayButton}`}
+                className={`${chip} whitespace-nowrap rounded-full disabled:cursor-not-allowed disabled:opacity-40 ${
+                  on ? 'bg-city-cream text-city-ink' : overlayButton
+                }`}
               >
                 {label}
               </button>
@@ -752,38 +960,6 @@ export default function SeatView() {
                 {row && ` · Row ${row} · Seat ${seatNumber}`}
                 {floor && ` · ${ticket.name} · ${section.zone.side}`} · about {distance} m from centre stage
               </p>
-            </div>
-          )}
-          {/* The fan-project switch gets a row of its own: it needs more than one
-              word to say what it is. Only there once the sheet has numbers.
-              Turned on, a second row chooses between what's been availed so
-              far and the goal of everyone having one. */}
-          {headbandTotal > 0 && (
-            <button
-              type="button"
-              onClick={() => setHeadbands(headbands === 'off' ? 'current' : 'off')}
-              aria-pressed={headbands !== 'off'}
-              className={`${chip} pointer-events-auto flex items-center gap-2 rounded-full ${
-                headbands !== 'off' ? 'bg-[#ff4fa8] text-white' : overlayButton
-              }`}
-            >
-              <span className={`h-2 w-2 rounded-full ${headbands !== 'off' ? 'bg-white' : 'bg-[#ff4fa8]'}`} />
-              SUGA headbands
-            </button>
-          )}
-          {headbandTotal > 0 && headbands !== 'off' && (
-            <div className="pointer-events-auto flex overflow-hidden rounded-full bg-city-ink/75">
-              {HEADBAND_VIEWS.slice(1).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setHeadbands(value)}
-                  aria-pressed={headbands === value}
-                  className={`${chip} ${headbands === value ? 'bg-city-cream text-city-ink' : 'text-city-cream hover:bg-city-ink'}`}
-                >
-                  {label}
-                </button>
-              ))}
             </div>
           )}
           {/* Where a tap would take you — mouse only, a finger has no hover. */}
@@ -933,27 +1109,17 @@ export default function SeatView() {
               </button>
             </div>
 
-            <label className="mt-4 block">
+            <div className="mt-4">
               <span className={fieldLabel}>Section</span>
-              <select
+              <SectionPicker
+                groups={SECTION_GROUPS}
                 value={id}
-                onChange={(e) => {
-                  update({ s: e.target.value })
+                onChange={(s) => {
+                  update({ s })
                   setMode('seat')
                 }}
-                className="mt-2 w-full rounded-lg border-2 border-city-ink/15 bg-white px-3 py-2.5 font-semibold"
-              >
-                {SECTION_GROUPS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.options.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
+              />
+            </div>
 
             <div className="order-last mt-6 lg:order-none lg:mt-4">
               <SeatMap
@@ -997,47 +1163,100 @@ export default function SeatView() {
               )}
             </div>
 
-            {headbandTotal > 0 && (
-              <div className="mt-6 rounded-xl border-2 border-[#ff4fa8]/40 bg-[#ff4fa8]/5 p-4">
-                <p className={fieldLabel}>Fan project · Day 1</p>
-                <p className="mt-1 font-bold">SUGA lighted headbands</p>
-                <p className="mt-1 text-sm text-city-ink/70">
-                  {headbandTotal.toLocaleString('en-PH')} availed so far · {headbandsHere.count.toLocaleString('en-PH')}{' '}
-                  in {headbandsHere.name}.{' '}
-                  <Link to="/fan-projects" className="font-semibold text-city-crimson underline">
-                    About the project
-                  </Link>
-                </p>
-                <Link
-                  to="/bangtandahan"
-                  className="mt-3 block rounded-full bg-city-ink px-5 py-2 text-center text-sm font-bold uppercase tracking-wide text-city-cream transition hover:bg-city-crimson"
-                >
-                  Get your headband
-                </Link>
-                <div className="mt-3 grid grid-cols-3 gap-1.5">
-                  {HEADBAND_VIEWS.map(([value, label]) => (
+            {/* Fan projects, one tab per concert day. A day without a project
+                the 3D view can show yet says so instead. */}
+            <div className="mt-6 rounded-xl border-2 border-[#ff4fa8]/40 bg-[#ff4fa8]/5 p-4">
+              <p className={fieldLabel}>Fan projects</p>
+              <div className="mt-2 grid grid-cols-3 gap-1.5">
+                {fanProjectDays.map((d) => {
+                  const ready = Boolean(VIEWABLE_PROJECTS[d.id])
+                  return (
                     <button
-                      key={value}
+                      key={d.id}
                       type="button"
-                      onClick={() => setHeadbands(value)}
-                      aria-pressed={headbands === value}
-                      className={`rounded-lg border-2 px-1 py-2 text-xs font-bold leading-tight transition ${
-                        headbands === value
-                          ? 'border-[#ff4fa8] bg-[#ff4fa8] text-white'
-                          : 'border-city-ink/15 bg-white hover:border-[#ff4fa8]/60'
+                      onClick={() => setDay(d)}
+                      aria-pressed={d.id === day?.id}
+                      className={`rounded-lg border-2 px-1 py-1.5 text-xs font-bold leading-tight transition ${
+                        d.id === day?.id
+                          ? 'border-city-ink bg-city-ink text-city-cream'
+                          : 'border-city-ink/15 bg-white hover:border-city-ink/40'
                       }`}
                     >
-                      {label}
+                      {d.label}
+                      <span className="block text-[10px] font-semibold opacity-70">{ready ? d.date : 'Soon'}</span>
                     </button>
-                  ))}
-                </div>
-                {headbands === 'all' && (
-                  <p className="mt-2 text-xs text-city-ink/60">
-                    The goal: every attendee wearing one, in the stands and on the floor.
-                  </p>
-                )}
+                  )
+                })}
               </div>
-            )}
+
+              {/* The headband view's two ways of looking, right under the days. */}
+              {dayProjects.includes('headbands') && headbandTotal > 0 && (
+                <>
+                    <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                      {HEADBAND_VIEWS.map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setHeadbands(value)}
+                          aria-pressed={headbands === value}
+                          className={`rounded-lg border-2 px-1 py-2 text-xs font-bold leading-tight transition ${
+                            headbands === value
+                              ? 'border-[#ff4fa8] bg-[#ff4fa8] text-white'
+                              : 'border-city-ink/15 bg-white hover:border-[#ff4fa8]/60'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    {headbands === 'all' && (
+                      <p className="mt-2 text-xs text-city-ink/60">
+                        The goal: every attendee wearing one, in the stands and on the floor.
+                      </p>
+                    )}
+                </>
+              )}
+
+              {dayProjects.includes('headbands') && headbandTotal > 0 ? (
+                <div className="mt-4">
+                  <p className="mt-1 font-bold">SUGA lighted headbands</p>
+                  <p className="mt-1 text-sm text-city-ink/70">
+                    {headbandTotal.toLocaleString('en-PH')} {day.label} attendees availed so far.{' '}
+                    <Link to="/fan-projects" className="font-semibold text-city-crimson underline">
+                      About the project
+                    </Link>
+                  </p>
+                  <Link
+                    to="/bangtandahan"
+                    className="mt-3 block rounded-full bg-city-ink px-5 py-2 text-center text-sm font-bold uppercase tracking-wide text-city-cream transition hover:bg-city-crimson"
+                  >
+                    Get your headband
+                  </Link>
+                </div>
+              ) : day ? (
+                <p className="mt-4 text-sm text-city-ink/70">
+                  {day.label} fan projects are coming soon. Check back here to see them light up the stadium.{' '}
+                  <Link to="/fan-projects" className="font-semibold text-city-crimson underline">
+                    Fan projects
+                  </Link>
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-city-ink/70">Pick a day to see its fan projects light up the stadium.</p>
+              )}
+            </div>
+
+            <Link
+              to="/fanchant"
+              className="mt-3 flex items-center justify-between rounded-xl border-2 border-city-ink/10 bg-city-cream px-4 py-3 text-sm font-bold transition hover:border-city-crimson/40"
+            >
+              <span>
+                Practice the fanchants
+                <span className="block text-xs font-normal text-city-ink/60">Lyrics and chants for the ARIRANG setlist</span>
+              </span>
+              <span aria-hidden="true" className="text-city-crimson">
+                →
+              </span>
+            </Link>
 
             <button
               type="button"

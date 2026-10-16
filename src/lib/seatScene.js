@@ -225,10 +225,136 @@ const ARM_POSES = 4
 const POSES = ARM_POSES * 2
 // The picture leaves headroom above the figure for raised arms: a person's
 // head tops out this far up it.
-const POSE_HEADROOM = 0.84
+const POSE_HEADROOM = 0.78
 const PERSON_HEIGHT = 1.6
 // How far a seated person's head is below where it would be standing.
 const SEATED_DROP = 0.4
+
+// The ARMY Bomb, BTS's official lightstick, as people hold it at the show: a
+// black handle with a hexagonal button, a black collar, a clear globe glowing
+// purple with the BTS logo inside, and the little cap with its red button on
+// the top. Drawn upright with the bottom of the handle at (x, y); `size` is
+// the globe's radius in pixels.
+function drawLightstick(ink, x, y, size) {
+  const globe = size * 2
+  const handleWidth = globe * 0.3
+  const handleLength = globe * 1.4
+
+  // Handle, a touch wider at the top, with the end cap marked off at the bottom.
+  ink.fillStyle = '#141318'
+  ink.beginPath()
+  ink.moveTo(x - handleWidth * 0.46, y)
+  ink.lineTo(x - handleWidth / 2, y - handleLength)
+  ink.lineTo(x + handleWidth / 2, y - handleLength)
+  ink.lineTo(x + handleWidth * 0.46, y)
+  ink.closePath()
+  ink.fill()
+  ink.fillStyle = '#2a2930'
+  ink.fillRect(x - handleWidth * 0.46, y - handleLength * 0.1, handleWidth * 0.92, Math.max(1, size * 0.04))
+  // The hexagonal button.
+  const button = handleWidth * 0.28
+  const by = y - handleLength * 0.78
+  ink.strokeStyle = '#5c5a66'
+  ink.lineWidth = Math.max(1, size * 0.05)
+  ink.beginPath()
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2 + Math.PI / 6
+    ink.lineTo(x + Math.cos(a) * button, by + Math.sin(a) * button * 1.25)
+  }
+  ink.closePath()
+  ink.stroke()
+
+  // The collar the globe sits in.
+  const collarTop = y - handleLength - globe * 0.11
+  ink.fillStyle = '#1d1c22'
+  ink.fillRect(x - globe * 0.24, collarTop, globe * 0.48, globe * 0.11)
+
+  // The globe: glowing glass, brightest in the middle.
+  const cy = collarTop - size * 0.9
+  const glow = ink.createRadialGradient(x, cy, 0, x, cy, size)
+  glow.addColorStop(0, '#f7f0ff')
+  glow.addColorStop(0.5, '#c4a2ff')
+  glow.addColorStop(1, 'rgba(150, 105, 255, 0.6)')
+  ink.fillStyle = glow
+  ink.beginPath()
+  ink.arc(x, cy, size, 0, Math.PI * 2)
+  ink.fill()
+  ink.strokeStyle = 'rgba(255, 255, 255, 0.85)'
+  ink.lineWidth = Math.max(1, size * 0.07)
+  ink.stroke()
+  // The grey cup at the bottom of the globe.
+  ink.fillStyle = 'rgba(70, 66, 84, 0.85)'
+  ink.beginPath()
+  ink.ellipse(x, cy + size * 0.62, size * 0.5, size * 0.14, 0, 0, Math.PI * 2)
+  ink.fill()
+
+  // The logo: two door shapes, tall on the outside, sloping in at the top
+  // and bottom towards the middle.
+  const half = size * 0.36
+  const tall = size * 0.62
+  ink.fillStyle = 'rgba(255, 255, 255, 0.95)'
+  for (const side of [-1, 1]) {
+    ink.beginPath()
+    ink.moveTo(x + side * half, cy - tall)
+    ink.lineTo(x + side * half * 0.16, cy - tall * 0.62)
+    ink.lineTo(x + side * half * 0.16, cy + tall * 0.62)
+    ink.lineTo(x + side * half, cy + tall)
+    ink.closePath()
+    ink.fill()
+  }
+
+  // The cap on top of the globe, set off to one side, with its red button.
+  const capAngle = -Math.PI / 2 + 0.55
+  const cx = x + Math.cos(capAngle) * size
+  const capY = cy + Math.sin(capAngle) * size
+  ink.save()
+  ink.translate(cx, capY)
+  ink.rotate(0.55)
+  ink.fillStyle = '#141318'
+  ink.fillRect(-size * 0.26, -size * 0.14, size * 0.52, size * 0.2)
+  ink.fillStyle = '#d9263c'
+  ink.beginPath()
+  ink.ellipse(0, -size * 0.14, size * 0.12, size * 0.05, 0, 0, Math.PI * 2)
+  ink.fill()
+  ink.restore()
+
+  // A glint on the glass.
+  ink.fillStyle = 'rgba(255, 255, 255, 0.8)'
+  ink.beginPath()
+  ink.ellipse(x - size * 0.55, cy - size * 0.3, size * 0.1, size * 0.22, 0.4, 0, Math.PI * 2)
+  ink.fill()
+}
+
+// What the crowd is holding, laid out exactly like the pose picture (one cell
+// per pose) but at twice the resolution: a lightstick in a raised hand, or held
+// upright at the side when both arms are down. Everything else is see-through,
+// so drawn over a person it adds only the lightstick.
+function drawProps() {
+  const scale = 2
+  const w = 128 * scale
+  const h = 256 * scale
+  const canvas = document.createElement('canvas')
+  canvas.width = w * POSES
+  canvas.height = h
+  const ink = canvas.getContext('2d')
+  const top = 256 * (1 - POSE_HEADROOM)
+  // A real globe is about 9 cm across: 6 pixels of radius at this scale.
+  const size = 6 * scale
+
+  for (let pose = 0; pose < POSES; pose++) {
+    const arms = pose % ARM_POSES
+    ink.save()
+    ink.translate(pose * w, 0)
+    // The hand holding it: the raised one (the right, if both are up), or the
+    // right hand down at the side. Same points as the arms in drawPoses.
+    const side = arms === 2 ? -1 : 1
+    const hand = arms === 0 ? [64 + side * 30, top + 116] : [64 + side * 34, top - 26]
+    // Gripped a little above the bottom of the handle.
+    drawLightstick(ink, hand[0] * scale, (hand[1] + 6) * scale, size)
+    ink.restore()
+  }
+  return canvas
+}
 
 // One picture with every pose in it: a person seen from behind, painted in
 // shades of grey that the person's own colour is multiplied into later — so the
@@ -416,10 +542,26 @@ function buildCrowd(track, poses) {
   }
 
   const crowd = new THREE.Group()
-  crowd.add(
-    buildPeople(track, poses, PERSON_HEIGHT, CROWD_CLEARANCE, standing),
-    buildPeople(track, poses, PERSON_HEIGHT, CROWD_CLEARANCE, seated),
-  )
+  const people = [standing, seated].map((group) => buildPeople(track, poses, PERSON_HEIGHT, CROWD_CLEARANCE, group))
+  crowd.add(...people)
+
+  // Their lightsticks: a second layer over the same people — same corners,
+  // same poses, same positions — showing only what they hold. It's drawn
+  // after them at exactly the same depth, so it lands on top. Not tinted or
+  // dimmed like their clothes: the globes light themselves.
+  const held = track(new THREE.CanvasTexture(drawProps()))
+  held.colorSpace = THREE.SRGBColorSpace
+  const material = cutoutMaterial(track, held, CROWD_CLEARANCE)
+  material.depthFunc = THREE.LessEqualDepth
+  const lightsticks = people.map((person) => {
+    const layer = new THREE.InstancedMesh(person.geometry, material, person.count)
+    layer.instanceMatrix = person.instanceMatrix
+    layer.frustumCulled = false
+    layer.renderOrder = 1
+    crowd.add(layer)
+    return layer
+  })
+  crowd.userData.lightsticks = lightsticks
   return crowd
 }
 
@@ -873,17 +1015,25 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
   // A material for points of light `size` metres across, kept between `least`
   // and `most` pixels on screen: the far side of the stadium still twinkles,
   // and the light of the person next to you doesn't fill the view.
-  const glowMaterial = (options, least, most) => {
+  // With `beyond`, points closer to the camera than that many metres aren't
+  // drawn at all.
+  const glowMaterial = (options, least, most, beyond = 0) => {
     const material = track(new THREE.PointsMaterial({ map: dotTexture, alphaTest: 0.3, ...options }))
     material.onBeforeCompile = (shader) => {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <logdepthbuf_vertex>',
-        `gl_PointSize = clamp(gl_PointSize, ${least.toFixed(1)}, ${most.toFixed(1)});\n#include <logdepthbuf_vertex>`,
+        `gl_PointSize = clamp(gl_PointSize, ${least.toFixed(1)}, ${most.toFixed(1)});
+  if (-mvPosition.z < ${beyond.toFixed(1)}) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+#include <logdepthbuf_vertex>`,
       )
     }
     return material
   }
-  const sparkle = glowMaterial({ size: 0.3, vertexColors: true }, 1.5, 7)
+  // The sea of lightsticks as seen from a distance: one point of light per
+  // seat. Close up, the lightsticks people are holding take over (see
+  // buildCrowd), so the points stop short of the camera.
+  const LIGHTSTICK_POINTS_FROM = 18
+  const sparkle = glowMaterial({ size: 0.3, vertexColors: true }, 1.5, 7, LIGHTSTICK_POINTS_FROM)
   const lightsticks = new THREE.Points(track(buildLightsticks()), sparkle)
   scene.add(lightsticks)
 
@@ -1052,6 +1202,7 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
     }
     marker.visible = mode === 'overview'
     labels.visible = mode === 'overview'
+    applyLights()
   }
 
   const setSeat = (position, id) => {
@@ -1116,10 +1267,15 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
   // headbands are shown, so they're the only lights left in the stadium.
   let night = startNight
   let headbandsOn = false
+  let bombsOn = true
   const applyLights = () => {
     const look = night ? LOOKS.night : LOOKS.day
     const showing = !headbandsOn
-    lightsticks.visible = night && showing
+    // The ARMY Bombs have their own switch (and go with the crowd that holds
+    // them); everything else in the show goes dark for the headband view.
+    const bombs = bombsOn && crowd.visible
+    lightsticks.visible = bombs
+    for (const held of crowd.userData.lightsticks) held.visible = bombs
     showLights.visible = night && showing
     stage.deck.emissiveIntensity = showing ? look.glow : 0
     for (const screen of rig.screens) screen.color.setScalar(showing ? 1 : 0.08)
@@ -1132,7 +1288,9 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
     scene.background.set(look.sky)
     ambient.intensity = look.ambient
     sun.intensity = look.sun
-    for (const people of crowd.children) people.material.color.setScalar(look.crowd)
+    for (const people of crowd.children) {
+    if (!crowd.userData.lightsticks.includes(people)) people.material.color.setScalar(look.crowd)
+  }
     applyLights()
     render()
   }
@@ -1181,6 +1339,13 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
 
   const setCrowd = (shown) => {
     crowd.visible = shown
+    applyLights()
+    render()
+  }
+
+  const setBombs = (shown) => {
+    bombsOn = shown
+    applyLights()
     render()
   }
 
@@ -1379,6 +1544,7 @@ export function createSeatScene(canvas, { mode: startMode = 'seat', night: start
     zoomBy,
     setNight,
     setCrowd,
+    setBombs,
     setHeadbands,
     setHeadbandsShown,
     setCovered,

@@ -43,8 +43,8 @@ const AISLE = 0.06
 // 2.7 m above the last row of Bleachers 1 — if you change the row count again,
 // move its `offset` and `y` to keep that gap.
 export const TIERS = [
-  { id: 'b1', name: 'Bleachers 1', price: '₱13,500', base: 100, color: '#C9A0F5', rows: 12, depth: 0.85, rise: 0.42, offset: 0, y: 1.6 },
-  { id: 'b2', name: 'Bleachers 2', price: '₱7,500', base: 200, color: '#4A8DBF', rows: 12, depth: 0.85, rise: 0.55, offset: 13.6, y: 9.3 },
+  { id: 'b1', name: 'Bleachers 1', base: 100, color: '#C9A0F5', rows: 12, depth: 0.85, rise: 0.42, offset: 0, y: 1.6 },
+  { id: 'b2', name: 'Bleachers 2', base: 200, color: '#4A8DBF', rows: 12, depth: 0.85, rise: 0.55, offset: 13.6, y: 9.3 },
 ]
 
 export const FLOOR_COLOR = '#FF8A93'
@@ -184,7 +184,7 @@ export function sectionSpan(number) {
 // Every pickable place, in the order the dropdown lists them.
 export const SECTION_GROUPS = [
   ...TIERS.map((tier) => ({
-    label: `${tier.name} · ${tier.price}`,
+    label: tier.name,
     options: Array.from({ length: SECTIONS_PER_RING }, (_, i) => ({
       id: String(tier.base + i + 1),
       name: `Section ${tier.base + i + 1}`,
