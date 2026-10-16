@@ -363,32 +363,49 @@ export function neighbourSection(id, direction) {
 }
 
 // --- Seat numbers -----------------------------------------------------------
-// Worked out from two real tickets, one in each tier:
-//   Bleachers 1, section 116, row 2, seats 368–369
-//   Bleachers 2, section 232, row 1, seats 759–760
-// Seat numbers that high can't restart in each section. They fit if every row
-// is numbered once round the whole ring, starting in section x01, with 24 seats
-// to a section — 361–384 in x16, 745–768 in x32. For each ticket on its own, 24
-// is the only whole number of seats per section that lands the pair in the
-// right section, and the two tickets are 16 sections and a corner apart.
+// From fan tickets (section → seat number):
+//   B1  116 → 368   122 → 531   123 → 553   130 → 726   146 → 1,106
+//   B2  201 → 35    204 → 102   229 → 709   230 → 728   232 → 759
+//   but B2 225 row 11 → 13, and B2 242 → 13
+// Most sections are numbered once round the whole tier, at roughly 24 seats a
+// section, but not exactly 24 (B1 runs past 1,104; B2 seems to start a little
+// before 201). And some sections clearly restart at 1 (all known cases are in
+// row 11). So the ranges below are only an ESTIMATE for placing a seat in the
+// 3D view, never a rule: any seat number is accepted and placed somewhere in
+// its section and row — see seatToAcross.
 //
 // Still not known: which way the numbers run within a section. They're assumed
 // to climb the same way the section numbers do — to your left as you face the
 // stage. Nor is it confirmed that row 1 is the front row.
 export const SEATS_PER_SECTION = 24
+export const MAX_SEAT_NUMBER = 3000
 
-// The seat numbers a section holds, by the theory above.
+// The seat numbers a section would hold if the numbering ran evenly round the
+// tier. Used for placing a seat in the view.
 export function seatRange(number) {
   const first = (number - 1) * SEATS_PER_SECTION + 1
   return { first, last: first + SEATS_PER_SECTION - 1 }
 }
 
-// Seat number → `across` (0 left … 1 right), or null if that seat isn't in the
-// section — which is also how a ticket that breaks the theory shows itself.
+// How far outside that estimate a seat number can be and still be read by it:
+// the per-section count drifts by a seat or so, adding up round the ring.
+const SEAT_SLACK = SEATS_PER_SECTION
+
+// Seat number → `across` (0 left … 1 right). Every number gets a place, so a
+// ticket is never turned away:
+//   - near this section's estimated range, by where it falls in that range
+//     (a near-miss goes to the nearer end);
+//   - anything else — a section or row that restarts at 1, say — by where it
+//     would fall counting from 1 in blocks of one section's width, so seat 3
+//     sits near one end and seat 22 near the other.
 export function seatToAcross(number, seat) {
+  if (!Number.isInteger(seat) || seat < 1) return 0.5
   const { first, last } = seatRange(number)
-  if (!Number.isInteger(seat) || seat < first || seat > last) return null
-  return 1 - (seat - first + 0.5) / SEATS_PER_SECTION
+  const index =
+    seat >= first - SEAT_SLACK && seat <= last + SEAT_SLACK
+      ? Math.min(last, Math.max(first, seat)) - first
+      : (seat - 1) % SEATS_PER_SECTION
+  return 1 - (index + 0.5) / SEATS_PER_SECTION
 }
 
 export function acrossToSeat(number, across) {

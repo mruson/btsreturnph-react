@@ -32,7 +32,7 @@ export function cleanHandle(value) {
 const REASONS = {
   already_registered:
     'That handle is already saved for this seat from another device. Use “Remove me” on the device you first used, or message us to have it removed.',
-  seat_not_in_section: 'That seat number isn’t in this section. Check your ticket and try again.',
+  seat_not_in_section: 'That doesn’t look like a seat number. Check your ticket and try again.',
   seat_full:
     'This seat already has the most people we allow. If it’s your seat and someone else has claimed it, message us and we’ll sort it out.',
   handle_limit: 'That handle is already saved for two seats on this day. Remove one first to save another.',

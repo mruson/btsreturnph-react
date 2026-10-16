@@ -17,9 +17,9 @@ import {
   sectionSpan,
   findSection,
   seatPosition,
-  seatRange,
   seatToAcross,
   acrossToSeat,
+  MAX_SEAT_NUMBER,
   depthToQueue,
   queueToDepth,
   FLOOR_TICKETS,
@@ -269,36 +269,28 @@ function RowPicker({ rows, value, onChange }) {
 // Seat number as printed on the ticket. What's typed is kept as a draft so a
 // half-entered number ("36" on the way to "369") isn't rejected mid-keystroke;
 // the view only moves once the number is one this section actually holds.
-function SeatInput({ number, value, onChange }) {
-  const { first, last } = seatRange(number)
+function SeatInput({ value, onSeat }) {
   const [draft, setDraft] = useState(String(value))
   useEffect(() => setDraft(String(value)), [value])
 
-  const typed = Number(draft)
-  const outside = draft !== '' && seatToAcross(number, typed) === null
-
   return (
     <label className="block">
-      <span className="font-manila-body text-xs font-bold uppercase tracking-[0.2em] text-city-crimson">
-        Seat
-      </span>
+      <span className="font-manila-body text-xs font-bold uppercase tracking-[0.2em] text-city-crimson">Seat</span>
       <input
         type="number"
         inputMode="numeric"
-        min={first}
-        max={last}
+        min="1"
+        max={MAX_SEAT_NUMBER}
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value)
-          const across = seatToAcross(number, Number(e.target.value))
-          if (e.target.value !== '' && across !== null) onChange(across)
+          const n = Number(e.target.value)
+          if (Number.isInteger(n) && n >= 1 && n <= MAX_SEAT_NUMBER) onSeat(n)
         }}
         className="mt-2 w-full rounded-lg border-2 border-city-ink/15 bg-white px-3 py-2.5 font-semibold"
       />
-      <span className={`mt-1.5 block text-xs font-semibold ${outside ? 'text-city-crimson' : 'text-city-ink/60'}`}>
-        {outside
-          ? `We expected seats ${first}–${last} in this section, so we can't place seat ${draft}. Check the section, or use the nearest number.`
-          : `Seats ${first}–${last} in this section (our estimate).`}
+      <span className="mt-1.5 block text-xs font-semibold text-city-ink/60">
+        The number on your ticket. Its exact spot in the section is our estimate.
       </span>
     </label>
   )
@@ -600,6 +592,11 @@ export default function SeatView() {
     const merged = { s: id, r: depth, p: across, ...next }
     const query = { s: merged.s, r: String(merged.r), p: String(merged.p) }
     if (params.get('d')) query.d = params.get('d')
+    // The seat number as printed on the ticket. It goes with the seat: kept
+    // while the row or position changes, dropped when the section does or when
+    // a new spot is picked by tapping (`n: null`).
+    const n = 'n' in next ? next.n : merged.s === id ? params.get('n') : null
+    if (n) query.n = String(n)
     // On the floor the link also says which line you're in. Unless a ticket type
     // was chosen outright, it's whichever line stands at that depth — so
     // dragging the slider or tapping the floor moves you between the two.
@@ -619,7 +616,7 @@ export default function SeatView() {
   handlers.current = {
     // Tapping a spot in 3D sits you exactly there.
     onPick: ({ id: s, depth: r, across: p }) => {
-      update({ s, r: Math.round(r * 100), p: Math.round(p * 100) })
+      update({ s, r: Math.round(r * 100), p: Math.round(p * 100), n: null })
       setMode('seat')
     },
     onHover: setHovered,
@@ -858,7 +855,11 @@ export default function SeatView() {
   const rows = floor ? 0 : section.tier.rows
   const row = floor ? null : Math.round((depth / 100) * (rows - 1)) + 1
   const setRow = (next) => update({ r: Math.round(((next - 1) / (rows - 1)) * 100) })
-  const seatNumber = floor ? null : acrossToSeat(section.number, across / 100)
+  // The ticket's own seat number if one was typed in (kept in the link as ?n=),
+  // otherwise our estimate for wherever the seat has been placed.
+  const typedSeat = Number(params.get('n'))
+  const ticketSeat = Number.isInteger(typedSeat) && typedSeat >= 1 && typedSeat <= MAX_SEAT_NUMBER ? typedSeat : null
+  const seatNumber = floor ? null : ticketSeat ?? acrossToSeat(section.number, across / 100)
   // A link without a (valid) ticket type falls back to the line at that depth.
   const ticket = floor
     ? (FLOOR_TICKETS.find((t) => t.id === params.get('t')) ?? FLOOR_TICKETS.find((t) => t.id === depthToQueue(section.zone, depth / 100).ticket))
@@ -1159,9 +1160,8 @@ export default function SeatView() {
                 />
               ) : (
                 <SeatInput
-                  number={section.number}
                   value={seatNumber}
-                  onChange={(a) => update({ p: Math.round(a * 100) })}
+                  onSeat={(n) => update({ n, p: Math.round(seatToAcross(section.number, n) * 100) })}
                 />
               )}
             </div>

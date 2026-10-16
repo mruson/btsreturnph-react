@@ -9,8 +9,9 @@
 -- ------------
 -- Someone on /seat-view enters their bleacher seat, a display name and a social
 -- handle, and presses "Find my seatmates". That saves their seat here and shows
--- them anyone already saved in the seat directly either side of them, same day
--- and row. Nobody else's seat is ever shown, and there is no list to browse.
+-- them anyone already saved in the seat directly either side of them: same day,
+-- section and row, seat number one either way. Nobody else's seat is ever
+-- shown, and there is no list to browse.
 --
 -- THE SECURITY MODEL
 -- ------------------
@@ -36,16 +37,21 @@ create extension if not exists pgcrypto with schema extensions;
 -- ============================================================================
 -- 1. THE TABLE
 -- ============================================================================
--- Seats are numbered once round each tier (1–1,104: 46 sections × 24 seats),
--- so "the seat beside you" is simply seat ± 1, wrapping from 1,104 back to 1.
+-- Seat numbers are stored exactly as printed on the ticket. Most sections are
+-- numbered on from the one before, some restart at 1, and the count per section
+-- varies — so "the seat beside you" is matched within your own section and row
+-- (seat ± 1), which holds whichever way a section is numbered. The one match
+-- this misses is across the aisle into the next section.
 
 create table if not exists public.seatmates (
   id              uuid primary key default gen_random_uuid(),
   created_at      timestamptz not null default now(),
   day             smallint not null check (day between 1 and 3),
   tier            smallint not null check (tier between 1 and 2),
+  section         smallint not null
+                    check (section between 101 and 146 or section between 201 and 246),
   row_no          smallint not null check (row_no between 1 and 12),
-  seat            smallint not null check (seat between 1 and 1104),
+  seat            smallint not null,
   name            text not null check (char_length(name) between 1 and 40),
   -- Letters, numbers, dots and underscores only: it ends up in a profile link.
   handle          text not null check (handle ~ '^[A-Za-z0-9._]{1,30}$'),
@@ -53,12 +59,34 @@ create table if not exists public.seatmates (
   remove_key_hash text not null check (char_length(remove_key_hash) = 64)
 );
 
--- The same handle can't be saved twice for the same seat and day.
-create unique index if not exists seatmates_one_per_person
-  on public.seatmates (day, tier, row_no, seat, platform, lower(handle));
+-- Changes for a table made by an earlier version of this file, which had no
+-- section column and only allowed seats 1–1,104. Safe to re-run.
+alter table public.seatmates add column if not exists section smallint;
+-- Old entries get the section their seat number placed them in back then.
+update public.seatmates
+  set section = tier * 100 + least(46, (seat - 1) / 24 + 1)
+  where section is null;
+alter table public.seatmates alter column section set not null;
+alter table public.seatmates drop constraint if exists seatmates_seat_check;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'seatmates_seat_range') then
+    alter table public.seatmates add constraint seatmates_seat_range check (seat between 1 and 3000);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'seatmates_section_range') then
+    alter table public.seatmates add constraint seatmates_section_range
+      check (section between 101 and 146 or section between 201 and 246);
+  end if;
+end $$;
+drop index if exists public.seatmates_one_per_person;
+drop index if exists public.seatmates_by_seat;
 
-create index if not exists seatmates_by_seat
-  on public.seatmates (day, tier, row_no, seat);
+-- The same handle can't be saved twice for the same seat and day.
+create unique index if not exists seatmates_one_per_person_v2
+  on public.seatmates (day, section, row_no, seat, platform, lower(handle));
+
+create index if not exists seatmates_by_seat_v2
+  on public.seatmates (day, section, row_no, seat);
 
 alter table public.seatmates enable row level security;
 
@@ -130,17 +158,13 @@ as $$
          ) order by s.seat), '[]'::jsonb)
   from public.seatmates s
   where s.day = p_entry.day
-    and s.tier = p_entry.tier
+    and s.section = p_entry.section
     and s.row_no = p_entry.row_no
-    and s.seat in (
-      case when p_entry.seat = 1 then 1104 else p_entry.seat - 1 end,
-      case when p_entry.seat = 1104 then 1 else p_entry.seat + 1 end
-    );
+    and s.seat in (p_entry.seat - 1, p_entry.seat + 1);
 $$;
 
--- Saves a seat and returns { id, seatmates }. The seat must belong to the
--- section given (seat numbers are checked against it), so a typo is caught
--- rather than saved somewhere else.
+-- Saves a seat and returns { id, seatmates }. Any seat number from 1 to 3,000
+-- is accepted: numbering varies too much between sections to check it.
 create or replace function public.find_seatmates(
   p_day int, p_section int, p_row int, p_seat int,
   p_name text, p_handle text, p_platform text, p_key text
@@ -160,8 +184,7 @@ declare
   v_address text;
   v_device text;
 begin
-  if v_tier not in (1, 2) or v_number not between 1 and 46
-     or p_seat not between (v_number - 1) * 24 + 1 and v_number * 24 then
+  if v_tier not in (1, 2) or v_number not between 1 and 46 or p_seat not between 1 and 3000 then
     raise exception 'seat_not_in_section';
   end if;
   if char_length(coalesce(p_key, '')) < 20 then
@@ -170,7 +193,7 @@ begin
 
   select * into v_entry
   from public.seatmates
-  where day = p_day and tier = v_tier and row_no = p_row and seat = p_seat
+  where day = p_day and section = p_section and row_no = p_row and seat = p_seat
     and platform = p_platform and lower(handle) = lower(v_handle);
 
   if found then
@@ -189,7 +212,7 @@ begin
       raise exception 'finder_full';
     end if;
     if (select count(*) from public.seatmates
-        where day = p_day and tier = v_tier and row_no = p_row and seat = p_seat) >= v_caps.per_seat then
+        where day = p_day and section = p_section and row_no = p_row and seat = p_seat) >= v_caps.per_seat then
       raise exception 'seat_full';
     end if;
     if (select count(*) from public.seatmates
@@ -212,8 +235,8 @@ begin
       insert into public.seatmate_saves (device_hash) values (v_device);
     end if;
 
-    insert into public.seatmates (day, tier, row_no, seat, name, handle, platform, remove_key_hash)
-    values (p_day, v_tier, p_row, p_seat, trim(p_name), v_handle, p_platform, v_hash)
+    insert into public.seatmates (day, tier, section, row_no, seat, name, handle, platform, remove_key_hash)
+    values (p_day, v_tier, p_section, p_row, p_seat, trim(p_name), v_handle, p_platform, v_hash)
     returning * into v_entry;
   end if;
 
@@ -270,7 +293,7 @@ grant execute on function public.remove_seatmate(uuid, text) to anon, authentica
 -- ============================================================================
 -- To see or remove entries, use Table Editor → seatmates in the dashboard, or:
 --
---   select created_at, day, tier, row_no, seat, name, handle, platform
+--   select created_at, day, section, row_no, seat, name, handle, platform
 --   from public.seatmates order by created_at desc;
 --
 --   delete from public.seatmates where lower(handle) = 'somehandle';
