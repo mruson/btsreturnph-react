@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useSheet, num } from '../lib/sheet'
 import { sheets } from '../data/site'
 import { fanProjectDays } from '../data/fanProjects'
+import SeatmateFinder from '../components/SeatmateFinder'
 import {
   TIERS,
   FLOOR_ZONES,
@@ -1098,7 +1099,9 @@ export default function SeatView() {
             ref={panelRef}
             className="absolute inset-x-0 bottom-0 flex max-h-[50%] flex-col overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-4 lg:max-h-none lg:w-[22rem] lg:rounded-2xl [&>*]:shrink-0"
           >
-            <div className="flex items-center justify-between gap-3">
+            {/* Pinned to the top of the panel, so Hide is always in reach however
+                far down the panel has been scrolled. */}
+            <div className="sticky -top-5 z-10 -mx-5 -mt-5 flex items-center justify-between gap-3 border-b border-city-ink/10 bg-white px-5 py-4">
               <h2 className="font-manila text-2xl uppercase leading-none">Find your seat</h2>
               <button
                 type="button"
@@ -1257,6 +1260,18 @@ export default function SeatView() {
                 →
               </span>
             </Link>
+
+            {/* Bleacher seats only: the floor has no seats to sit beside. Keyed
+                on the seat, so changing seat starts the finder afresh. */}
+            {!floor && (
+              <SeatmateFinder
+                key={`${id}-${row}-${seatNumber}`}
+                section={id}
+                row={row}
+                seat={seatNumber}
+                day={day ? Number(day.id.replace('day-', '')) : null}
+              />
+            )}
 
             <button
               type="button"

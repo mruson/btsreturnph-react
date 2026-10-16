@@ -183,6 +183,10 @@ export function sectionSpan(number) {
 
 // Every pickable place, in the order the dropdown lists them.
 export const SECTION_GROUPS = [
+  {
+    label: 'Floor · Soundcheck and Standing',
+    options: FLOOR_ZONES.map((z) => ({ id: z.id, name: `${z.name} (${z.side})` })),
+  },
   ...TIERS.map((tier) => ({
     label: tier.name,
     options: Array.from({ length: SECTIONS_PER_RING }, (_, i) => ({
@@ -190,10 +194,6 @@ export const SECTION_GROUPS = [
       name: `Section ${tier.base + i + 1}`,
     })),
   })),
-  {
-    label: 'Floor · Soundcheck and Standing',
-    options: FLOOR_ZONES.map((z) => ({ id: z.id, name: `${z.name} (${z.side})` })),
-  },
 ]
 
 export const DEFAULT_SECTION = '110'

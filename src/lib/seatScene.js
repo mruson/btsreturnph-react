@@ -348,7 +348,7 @@ function drawProps() {
     // The hand holding it: the raised one (the right, if both are up), or the
     // right hand down at the side. Same points as the arms in drawPoses.
     const side = arms === 2 ? -1 : 1
-    const hand = arms === 0 ? [64 + side * 30, top + 116] : [64 + side * 34, top - 26]
+    const hand = arms === 0 ? [64 + side * 30, top + 116] : [64 + side * 34, top + 54]
     // Gripped a little above the bottom of the handle.
     drawLightstick(ink, hand[0] * scale, (hand[1] + 6) * scale, size)
     ink.restore()
@@ -400,11 +400,12 @@ function drawPoses() {
     ink.closePath()
     ink.fill()
     limb(SHIRT, 13, [38, top + 44], [90, top + 44])
-    // Arms: 1 raises the right, 2 the left, 3 both.
+    // Arms: 1 lifts the right, 2 the left, 3 both — bent at the elbow with
+    // the hand at chest height, the way a lightstick is held through a show.
     const raised = [arms === 2 || arms === 3, arms === 1 || arms === 3]
     ;[-1, 1].forEach((side, i) => {
       const shoulder = [64 + side * 27, top + 46]
-      if (raised[i]) limb(ARMS, 12, shoulder, [64 + side * 40, top + 14], [64 + side * 34, top - 26])
+      if (raised[i]) limb(ARMS, 12, shoulder, [64 + side * 38, top + 80], [64 + side * 34, top + 54])
       else limb(ARMS, 12, shoulder, [64 + side * 33, top + 84], [64 + side * 30, top + 116])
     })
     // The back of the head is all hair; long hair falls down the back.

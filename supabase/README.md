@@ -180,3 +180,35 @@ npm run build && netlify deploy --dir=dist --prod   # live
 | `../src/lib/raffles.js` | Reading raffles; status lifecycle shared by both views |
 | `../src/pages/AdminRaffles.jsx` | Dashboard: entries + raffle management |
 | `../src/components/RaffleEditor.jsx` | The form that replaced the spreadsheet |
+
+---
+
+## Seatmate finder (`/seat-view`)
+
+A separate, one-time step. Run it in the **preview** project first, try it on a
+draft deploy, then run it in **production**.
+
+1. SQL Editor → New query → paste the whole of [`seatmates.sql`](./seatmates.sql)
+   → **Run**. `setup.sql` must already have been run in that project.
+2. The last query returns `public_can_read` and `public_can_write`. **Both must
+   be `false`.** If either is `true`, people's names and handles are downloadable
+   by anyone; stop and fix that before going further.
+3. Open `/seat-view` on a draft deploy, pick a bleacher seat and a day, and use
+   **Find my seatmates**. Then pick the seat next to it in a private window and
+   do the same: each should see the other.
+
+Until step 1 is done in a project, the finder shows "isn't available yet"
+instead of an error.
+
+**What's stored:** day, tier, row, seat, the display name, the handle and its
+platform, and a hash of a private key kept in the visitor's browser (that key is
+what lets them check again or remove themselves). No email, phone or IP.
+
+**Seeing or removing entries:** Table Editor → `seatmates`, or the queries at the
+end of `seatmates.sql`. Removal requests from people who've lost their device
+(and with it their "Remove me" button) are handled here.
+
+**What it can't stop:** tickets aren't checked, so someone can claim a seat
+that isn't theirs, or claim many seats to collect the names and handles of
+people who joined. Each claim is a row with its own handle on it, so it's
+visible and removable, but nothing prevents it up front.
