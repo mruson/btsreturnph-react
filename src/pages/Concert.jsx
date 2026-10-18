@@ -504,8 +504,9 @@ export default function Concert() {
         </div>
       </section>
 
-      {/* 3 — Projects update: what's still raising + what's already secured */}
-      <section className="py-16 sm:py-20">
+      {/* 3 — Projects update: what's still raising + what's already secured.
+          Linked to as /concert#fund-update (the Donate button on /seat-view). */}
+      <section id="fund-update" className="scroll-mt-20 py-16 sm:py-20">
         <div className="container-page">
           <div className="mb-10 max-w-2xl">
             <p className="mb-3 font-manila-body text-xs font-bold uppercase tracking-[0.2em] text-city-crimson">

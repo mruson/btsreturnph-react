@@ -4,6 +4,7 @@ import { useSheet, num } from '../lib/sheet'
 import { sheets } from '../data/site'
 import { fanProjectDays } from '../data/fanProjects'
 import SeatmateFinder from '../components/SeatmateFinder'
+import WelcomeModal from '../components/WelcomeModal'
 import {
   TIERS,
   FLOOR_ZONES,
@@ -873,6 +874,7 @@ export default function SeatView() {
 
   return (
     <div className="bg-city-cream font-manila-body text-city-ink">
+      <WelcomeModal />
       {/* Fills the screen under the 4rem navbar. On a phone it stops a little
           short: the view swallows every touch, so the strip of page left below
           is what you drag to scroll down to the footer. */}
