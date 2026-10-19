@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CityPageHero } from '../components/UI'
+import WelcomeModal from '../components/WelcomeModal'
 import { setlist, coreSetlist } from '../data/setlist'
 
 // --- YouTube IFrame API loader (once per page) -----------------------------
@@ -399,6 +400,7 @@ export default function Fanchant() {
 
   return (
     <div className="bg-city-cream font-manila-body text-city-ink">
+      <WelcomeModal continueLabel="Practice fanchants" />
       <CityPageHero
         code="Concert Initiative · ARIRANG Setlist"
         titleLines={['Fanchant', 'Guide']}

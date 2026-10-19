@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 // ============================================================================
-// WELCOME — a one-a-day introduction to BTS RE:TURN PH on /seat-view.
+// WELCOME — a one-a-day introduction to BTS RE:TURN PH.
 // ============================================================================
-// The seat view brings a lot of people to the site for the first time, so the
-// first visit each day opens with a short note about who we are and where the
-// fan projects and donations are. Closing it in any way (a button, Escape, a
+// Pages that bring a lot of people to the site for the first time (the seat
+// view, the fanchant guide) open, on the first visit each day, with a short
+// note about who we are and where the fan projects and donations are. The last
+// button just closes it and gets on with the page: `continueLabel` names it.
+//
+// "Each day" is shared between the pages: once seen on one, it doesn't show
+// again on the other until tomorrow. Closing it in any way (a button, Escape, a
 // tap outside) counts as seen until tomorrow, by the visitor's own calendar.
 
 const STORAGE_KEY = 'brph:welcome-seen'
@@ -34,7 +38,7 @@ function markSeen() {
   }
 }
 
-export default function WelcomeModal() {
+export default function WelcomeModal({ continueLabel }) {
   const [open, setOpen] = useState(() => !seenToday())
   // Focus goes to the dialog itself, not its first button: a button focused on
   // arrival would look picked before anything was chosen.
@@ -103,7 +107,7 @@ export default function WelcomeModal() {
             onClick={close}
             className="block w-full rounded-full px-5 py-2.5 text-center text-sm font-bold uppercase tracking-wide text-city-ink/70 transition hover:text-city-crimson"
           >
-            Find my seat
+            {continueLabel}
           </button>
         </div>
       </div>
