@@ -58,26 +58,20 @@ export const sheets = {
     // see fetchSheetByGid in lib/sheet.js. If the tab is ever deleted and made
     // again, its gid changes and this needs updating.
     headbands: { gid: '785155400' }, // the "SUGA Project" tab
+    // Lamp post banners per member — the table in the Fund update card on
+    // /concert. Read from the "_ledger" tab (by gid) by finding the row titled
+    // below, so finance can move the block around, but the title text must
+    // stay exactly this. Under it: a header row with "Member" and "Total
+    // Donations", one row per member, a TOTAL row (skipped), then a blank row
+    // to end it. An "OT7" row there shows up in the table too.
+    // Banners secured = total ÷ the cost of one banner (the `goal` of the
+    // "Lamp Post Banners" row in Fund), rounded down.
+    memberBanners: { gid: '1373058864', block: 'BTS MEMBER LAMP POST DONATIONS' },
     // NOTE: raffles are NOT here. They moved to the Supabase `raffles` table so
     // entries could reference them by id, and are edited in the admin dashboard
     // at /admin/raffles. The old "Raffles" tab in this sheet is dead — safe to
     // delete once you've recreated its raffles there.
   },
-}
-
-// --- Public fund tracker (finance's spreadsheet, not the one above) -------
-// The "Fund Tracker" button on /concert opens it, and the lamp post table in
-// the Fund update card reads straight from its ledger.
-export const fundTracker = {
-  id: '1-JEUoai_5I69GtLcQdXnzsIRCeq4c1KqZbmk0Hy-UyE',
-  // Lamp post banners per member. Read from the "Summary" tab (by gid) by
-  // finding the row titled below — so finance can move the block around, but
-  // the title text must stay exactly this. Under it: a header row with
-  // "Member" and "Total Donations", one row per member, a TOTAL row (skipped),
-  // then a blank row to end it. An "OT7" row there shows up in the table too.
-  // Banners secured = total ÷ the cost of one banner (the `goal` of the
-  // "Lamp Post Banners" row in the Fund tab), rounded down.
-  memberBanners: { gid: '641860786', block: 'BTS MEMBER LAMP POST DONATIONS' },
 }
 
 // --- Navigation (drives the navbar) ---------------------------------------

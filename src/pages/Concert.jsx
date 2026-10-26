@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { CityPageHero, CityImagePlaceholder, Skeleton, LoadError } from '../components/UI'
 import { useSheet, driveImage, isActive, num } from '../lib/sheet'
 import { liveSettings } from '../lib/live'
-import { sheets, fundTracker } from '../data/site'
+import { sheets } from '../data/site'
 
 // ---------------------------------------------------------------------------
 // EDIT ME — placeholder content for the BTS in the City: Manila page.
@@ -437,11 +437,11 @@ export default function Concert() {
   const tiles = funding.filter((l) => l.unitised || l.goal > 0)
   const untargeted = funding.filter((l) => !l.unitised && l.goal <= 0)
 
-  // Per-member banner table, read from finance's ledger in the public fund
-  // tracker. The cost of one banner comes from the Fund tab's lamp post row, so
+  // Per-member banner table, read from finance's ledger in the "_ledger" tab.
+  // The cost of one banner comes from the Fund tab's lamp post row, so
   // the price lives in one place. If the ledger block can't be found, there are
   // no rows and the table simply doesn't show.
-  const { rows: lampRows } = useSheet(fundTracker.id, fundTracker.memberBanners, [])
+  const { rows: lampRows } = useSheet(sheets.id, sheets.tabs.memberBanners, [])
   const lampCost = ledger.find((l) => l.unitised && /lamp\s*post/i.test(l.label))?.goal ?? 0
   const memberBanners = lampRows
     // Strip the ledger's "↳ " indent so a copied name reads cleanly.
@@ -653,7 +653,7 @@ export default function Concert() {
                 Donate Now
               </a>
               <a
-                href={`https://docs.google.com/spreadsheets/d/${fundTracker.id}/edit?usp=sharing`}
+                href="https://docs.google.com/spreadsheets/d/1-JEUoai_5I69GtLcQdXnzsIRCeq4c1KqZbmk0Hy-UyE/edit?usp=sharing"
                 target="_blank"
                 rel="noreferrer"
                 className="city-btn-outline"
