@@ -72,10 +72,25 @@ function parseCsv(text) {
 // one type per column from the majority of its cells and blanks out the rest —
 // so in a "section" column of 101, 102 … and "Section A", every "Section A"
 // silently came back empty.
-async function fetchSheetByGid(sheetId, gid) {
+//
+// `block` reads one table out of a free-form tab (a report with several tables
+// stacked down the page): the row holding that title is found by its text, the
+// row after it is the header, and the table runs to the first blank row. Found
+// by title rather than row number, so rows added above it don't break the read.
+// If the title isn't there, the result is empty rather than some other table.
+async function fetchSheetByGid(sheetId, gid, block) {
   const res = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`)
   if (!res.ok) throw new Error(`Sheet export failed (${res.status})`)
-  const [header = [], ...rows] = parseCsv(await res.text())
+  let table = parseCsv(await res.text())
+  if (block) {
+    const want = block.trim().toLowerCase()
+    const title = table.findIndex((cells) => cells.some((c) => c.trim().toLowerCase() === want))
+    if (title < 0) return []
+    table = table.slice(title + 1)
+    const end = table.findIndex((cells, i) => i > 0 && cells.every((c) => c.trim() === ''))
+    if (end >= 0) table = table.slice(0, end)
+  }
+  const [header = [], ...rows] = table
   const keys = header.map((h) => h.trim().toLowerCase())
   return rows
     .map((cells) => Object.fromEntries(keys.map((key, i) => [key, cells[i] ?? ''])))
@@ -87,7 +102,7 @@ async function fetchSheetByGid(sheetId, gid) {
 // The sheet must be shared as "Anyone with the link — Viewer" (or published).
 // `sheetName` may also be { gid } — see fetchSheetByGid for when that's needed.
 export async function fetchSheet(sheetId, sheetName) {
-  if (sheetName && typeof sheetName === 'object') return fetchSheetByGid(sheetId, sheetName.gid)
+  if (sheetName && typeof sheetName === 'object') return fetchSheetByGid(sheetId, sheetName.gid, sheetName.block)
   const url =
     `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq` +
     `?tqx=out:json&headers=1&sheet=${encodeURIComponent(sheetName)}`
@@ -125,7 +140,7 @@ const inflight = new Map() // key -> Promise, so parallel mounts share one reque
 const CACHE_MS = 5 * 60 * 1000 // re-fetch at most once every 5 minutes
 
 const keyFor = (sheetId, sheetName) =>
-  `${sheetId}::${typeof sheetName === 'object' ? `gid:${sheetName.gid}` : sheetName}`
+  `${sheetId}::${typeof sheetName === 'object' ? `gid:${sheetName.gid}:${sheetName.block ?? ''}` : sheetName}`
 
 // Drop everything cached — used by the retry button, which should always go to
 // the network rather than replay a failure.

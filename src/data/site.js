@@ -65,6 +65,21 @@ export const sheets = {
   },
 }
 
+// --- Public fund tracker (finance's spreadsheet, not the one above) -------
+// The "Fund Tracker" button on /concert opens it, and the lamp post table in
+// the Fund update card reads straight from its ledger.
+export const fundTracker = {
+  id: '1-JEUoai_5I69GtLcQdXnzsIRCeq4c1KqZbmk0Hy-UyE',
+  // Lamp post banners per member. Read from the "Summary" tab (by gid) by
+  // finding the row titled below — so finance can move the block around, but
+  // the title text must stay exactly this. Under it: a header row with
+  // "Member" and "Total Donations", one row per member, a TOTAL row (skipped),
+  // then a blank row to end it. An "OT7" row there shows up in the table too.
+  // Banners secured = total ÷ the cost of one banner (the `goal` of the
+  // "Lamp Post Banners" row in the Fund tab), rounded down.
+  memberBanners: { gid: '641860786', block: 'BTS MEMBER LAMP POST DONATIONS' },
+}
+
 // --- Navigation (drives the navbar) ---------------------------------------
 export const nav = [
   { label: 'About', to: '/about' },

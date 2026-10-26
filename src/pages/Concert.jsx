@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { CityPageHero, CityImagePlaceholder, Skeleton, LoadError } from '../components/UI'
 import { useSheet, driveImage, isActive, num } from '../lib/sheet'
 import { liveSettings } from '../lib/live'
-import { sheets } from '../data/site'
+import { sheets, fundTracker } from '../data/site'
 
 // ---------------------------------------------------------------------------
 // EDIT ME — placeholder content for the BTS in the City: Manila page.
@@ -212,6 +212,54 @@ function UnitTile({ l }) {
   )
 }
 
+// Lamp post banners per member — one row per member (and OT7) from the
+// finance ledger: total donations, and those pesos turned into whole banners
+// at the cost of one. Secured counts are in crimson and zeros are muted, so
+// the members still waiting stand out.
+function MemberBanners({ rows, unitCost }) {
+  return (
+    <div className="mt-6 rounded-xl border-2 border-city-ink/10">
+      <p className="border-b-2 border-city-ink/10 px-4 py-3 font-manila-body text-xs font-bold uppercase tracking-[0.2em] text-city-ink/60">
+        Lamp post banners per member
+      </p>
+      <table className="w-full text-left">
+        <thead>
+          <tr className="border-b-2 border-city-ink/10 font-manila-body text-[11px] font-bold uppercase tracking-wide text-city-ink/60">
+            <th scope="col" className="px-4 py-2">Member</th>
+            <th scope="col" className="px-2 py-2 text-right">Total donations</th>
+            <th scope="col" className="px-4 py-2 text-right">Banners secured</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y-2 divide-city-ink/5">
+          {rows.map((m) => {
+            const banners = Math.floor(m.raised / unitCost)
+            return (
+              <tr key={m.member}>
+                <th
+                  scope="row"
+                  className="px-4 py-3 font-manila-body text-sm font-bold uppercase tracking-wide"
+                >
+                  {m.member}
+                </th>
+                <td className="px-2 py-3 text-right font-manila-body text-sm font-semibold text-city-ink/70">
+                  {peso(m.raised)}
+                </td>
+                <td className="px-4 py-3 text-right font-manila-body text-sm font-bold">
+                  {banners > 0 ? (
+                    <span className="text-city-crimson">{banners}</span>
+                  ) : (
+                    <span className="text-city-ink/40">0</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // A row with a single lump-sum goal and no unit counts — the original shape.
 function TargetTile({ l }) {
   return (
@@ -389,6 +437,17 @@ export default function Concert() {
   const tiles = funding.filter((l) => l.unitised || l.goal > 0)
   const untargeted = funding.filter((l) => !l.unitised && l.goal <= 0)
 
+  // Per-member banner table, read from finance's ledger in the public fund
+  // tracker. The cost of one banner comes from the Fund tab's lamp post row, so
+  // the price lives in one place. If the ledger block can't be found, there are
+  // no rows and the table simply doesn't show.
+  const { rows: lampRows } = useSheet(fundTracker.id, fundTracker.memberBanners, [])
+  const lampCost = ledger.find((l) => l.unitised && /lamp\s*post/i.test(l.label))?.goal ?? 0
+  const memberBanners = lampRows
+    // Strip the ledger's "↳ " indent so a copied name reads cleanly.
+    .map((r) => ({ member: String(r.member ?? '').replace(/^[^\p{L}\p{N}]+/u, '').trim(), raised: num(r['total donations']) }))
+    .filter((r) => r.member && !/^total$/i.test(r.member))
+
   return (
     <div className="bg-city-cream font-manila-body text-city-ink">
       <CityPageHero
@@ -552,6 +611,10 @@ export default function Concert() {
               </div>
             )}
 
+            {lampCost > 0 && memberBanners.length > 0 && (
+              <MemberBanners rows={memberBanners} unitCost={lampCost} />
+            )}
+
             {untargeted.length > 0 && (
               <div className="mt-6 rounded-xl border-2 border-city-ink/10">
                 <p className="border-b-2 border-city-ink/10 px-4 py-3 font-manila-body text-xs font-bold uppercase tracking-[0.2em] text-city-ink/60">
@@ -590,7 +653,7 @@ export default function Concert() {
                 Donate Now
               </a>
               <a
-                href="https://docs.google.com/spreadsheets/d/1-JEUoai_5I69GtLcQdXnzsIRCeq4c1KqZbmk0Hy-UyE/edit?usp=sharing"
+                href={`https://docs.google.com/spreadsheets/d/${fundTracker.id}/edit?usp=sharing`}
                 target="_blank"
                 rel="noreferrer"
                 className="city-btn-outline"
